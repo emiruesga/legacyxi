@@ -247,14 +247,34 @@ export function WorldCupMoment({ countryName, flag, year, onContinue }: { countr
 
 /** The Legacy XI mark — a flat, single-accent monogram badge. No gradient,
  * no glow: a logo, not a hero graphic. */
+/** The Legacy XI mark — a badge tile, not a club crest (deliberately
+ * distinct from the generated club crests elsewhere in the app): a dark
+ * beveled square with one cut corner carrying a single accent flash, bold
+ * centered numerals. One shape, one accent — restraint over flourish. */
 export function LogoMark({ size = 40 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 40 40" aria-hidden="true">
-      <rect x="1" y="1" width="38" height="38" rx="10" fill="var(--surface-2)" stroke="var(--line-strong)" />
-      <text x="20" y="24" textAnchor="middle" fontFamily="Barlow Condensed, sans-serif" fontWeight="800" fontSize="16" fill="var(--ink)">
+    <svg width={size} height={size} viewBox="0 0 48 48" aria-hidden="true">
+      <defs>
+        <linearGradient id="lxi-mark-fill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#1b241d" />
+          <stop offset="100%" stopColor="#10160f" />
+        </linearGradient>
+        <clipPath id="lxi-mark-clip">
+          <path d="M13 3 H41 A4 4 0 0 1 45 7 V35 L35 45 H7 A4 4 0 0 1 3 41 V13 Z" />
+        </clipPath>
+      </defs>
+      <path
+        d="M13 3 H41 A4 4 0 0 1 45 7 V35 L35 45 H7 A4 4 0 0 1 3 41 V13 Z"
+        fill="url(#lxi-mark-fill)"
+        stroke="var(--line-strong)"
+        strokeWidth="1.25"
+      />
+      <g clipPath="url(#lxi-mark-clip)">
+        <path d="M45 30 L45 45 L30 45 Z" fill="var(--accent)" />
+      </g>
+      <text x="21" y="29" textAnchor="middle" fontFamily="Barlow Condensed, sans-serif" fontWeight="800" fontSize="19" fill="var(--ink)" letterSpacing="0.5">
         XI
       </text>
-      <line x1="12" y1="29" x2="28" y2="29" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" />
     </svg>
   );
 }
