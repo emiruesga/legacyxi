@@ -22,7 +22,7 @@ import type {
 } from "@legacyxi/sim";
 import { LEAGUES, POSITIONS, TIER_LABEL, cardStats, computeWorldRank, formatMoney, ratingLabel } from "@legacyxi/sim";
 import type { LeaderboardRow } from "./api.js";
-import { Crest, PlayerCard, PositionPicker } from "./cards.js";
+import { BallIcon, Crest, PitchMarkings, PlayerCard, PositionPicker } from "./cards.js";
 
 export function Bar({ value, max = 100 }: { value: number; max?: number }) {
   const pct = Math.max(0, Math.min(100, (value / max) * 100));
@@ -55,14 +55,22 @@ export function RatingChart({ seasons }: { seasons: PlayerState["seasons"] }) {
 export function IntroScreen({ onStart }: { onStart: () => void }) {
   return (
     <div className="wrap fade-in">
-      <div className="eyebrow">Football career simulator</div>
-      <h1 className="hero-title" style={{ marginTop: 8 }}>
-        Legacy XI
-      </h1>
-      <p className="muted" style={{ marginTop: 14, fontSize: 15.5 }}>
-        Create a footballer, live an entire career in a few minutes, and see how far your
-        legacy climbs — from an academy trial at sixteen to a place among the all-time greats.
-      </p>
+      <div className="pitch-hero">
+        <PitchMarkings />
+        <div className="pitch-hero-content">
+          <div className="row gap12" style={{ alignItems: "center" }}>
+            <BallIcon size={36} className="ball-spin kickoff" />
+            <div className="eyebrow">Football career simulator</div>
+          </div>
+          <h1 className="hero-title kickoff" style={{ marginTop: 10 }}>
+            Legacy XI
+          </h1>
+          <p className="muted" style={{ marginTop: 14, fontSize: 15.5 }}>
+            Create a footballer, live an entire career in a few minutes, and see how far your
+            legacy climbs — from an academy trial at sixteen to a place among the all-time greats.
+          </p>
+        </div>
+      </div>
       <div className="grid3" style={{ marginTop: 22 }}>
         <div className="card" style={{ padding: 14, textAlign: "center" }}>
           <div className="num statbig" style={{ fontSize: 26 }}>

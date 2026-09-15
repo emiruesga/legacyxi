@@ -1,3 +1,4 @@
+import { Trophy } from "lucide-react";
 import type { CardStats, CrestColors, PositionId } from "@legacyxi/sim";
 import { POSITIONS, crestFor } from "@legacyxi/sim";
 
@@ -117,5 +118,77 @@ export function PlayerCard({
         </div>
       </div>
     </div>
+  );
+}
+
+const CONFETTI_COLORS = ["#e4c158", "#5cff9e", "#c9cdd3", "#e2554b", "#f6dd8c"];
+
+/** A one-time celebratory moment for winning a trophy — not just a line in
+ * the recap. Tap anywhere to continue. */
+export function TrophyCelebration({ trophyName, year, onContinue }: { trophyName: string; year: number; onContinue: () => void }) {
+  const confetti = Array.from({ length: 18 }, (_, i) => ({
+    left: (i * 53) % 100,
+    delay: (i * 137) % 22 / 10,
+    duration: 2 + ((i * 71) % 12) / 10,
+    color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+    rotate: (i * 47) % 180,
+  }));
+  return (
+    <div className="trophy-overlay" onClick={onContinue} role="button" tabIndex={0}>
+      <div className="confetti" aria-hidden="true">
+        {confetti.map((c, i) => (
+          <span
+            key={i}
+            className="confetti-piece"
+            style={{
+              left: `${c.left}%`,
+              background: c.color,
+              animationDelay: `${c.delay}s`,
+              animationDuration: `${c.duration}s`,
+              transform: `rotate(${c.rotate}deg)`,
+            }}
+          />
+        ))}
+      </div>
+      <div className="trophy-panel">
+        <div className="trophy-glow">
+          <Trophy size={52} color="#e4c158" className="trophy-icon-pop" />
+        </div>
+        <div className="trophy-eyebrow">Trophy won</div>
+        <h2 className="trophy-title">{trophyName}</h2>
+        <div className="trophy-hint">{year} · tap to continue</div>
+      </div>
+    </div>
+  );
+}
+
+/** Faint pitch markings behind the intro hero — touchlines, center circle,
+ * halfway line, both penalty boxes. Purely decorative. */
+export function PitchMarkings() {
+  return (
+    <svg className="pitch-hero-lines" viewBox="0 0 400 260" preserveAspectRatio="none" aria-hidden="true">
+      <g fill="none" stroke="#5cff9e" strokeOpacity="0.5" strokeWidth="1.4">
+        <rect x="10" y="10" width="380" height="240" />
+        <line x1="10" y1="130" x2="390" y2="130" />
+        <circle cx="200" cy="130" r="36" />
+        <circle cx="200" cy="130" r="2" fill="#5cff9e" />
+        <rect x="10" y="70" width="46" height="120" />
+        <rect x="344" y="70" width="46" height="120" />
+      </g>
+    </svg>
+  );
+}
+
+export function BallIcon({ size = 34, className = "" }: { size?: number; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 40 40" className={className}>
+      <circle cx="20" cy="20" r="18" fill="#f1f5f0" stroke="#1b1305" strokeWidth="1.4" />
+      <g fill="#14171a">
+        <polygon points="20,10 26,14.5 24,21.5 16,21.5 14,14.5" />
+        <polygon points="8,17 14,14.5 16,21.5 12,27.5 6,25" />
+        <polygon points="32,17 26,14.5 24,21.5 28,27.5 34,25" />
+        <polygon points="14,32 16,24.5 24,24.5 26,32 20,36" />
+      </g>
+    </svg>
   );
 }

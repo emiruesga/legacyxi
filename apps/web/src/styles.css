@@ -515,3 +515,167 @@ table.stat-table th.num {
 .pcard-sm .pcard-stats {
   font-size: 10.5px;
 }
+
+/* ---------- trophy celebration ---------- */
+.trophy-overlay {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 50% 38%, rgba(228, 193, 88, 0.16), rgba(4, 8, 6, 0.94) 62%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 30;
+  padding: 24px;
+  cursor: pointer;
+}
+.trophy-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  max-width: 380px;
+}
+.trophy-glow {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle, rgba(228, 193, 88, 0.35), transparent 70%);
+  animation: trophyGlowPulse 1.8s ease-in-out infinite;
+}
+.trophy-icon-pop {
+  animation: trophyPop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.trophy-eyebrow {
+  font-family: "Oswald", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  animation: lxiFade 0.4s ease 0.15s both;
+}
+.trophy-title {
+  font-size: 26px;
+  color: var(--ink);
+  animation: lxiFade 0.4s ease 0.25s both;
+}
+.trophy-hint {
+  font-size: 13px;
+  color: var(--ink-dim);
+  animation: lxiFade 0.4s ease 0.4s both;
+}
+.confetti {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.confetti-piece {
+  position: absolute;
+  top: -10%;
+  width: 8px;
+  height: 14px;
+  opacity: 0.9;
+  animation: confettiFall 2.6s linear infinite;
+}
+@keyframes trophyPop {
+  0% {
+    transform: scale(0.3) rotate(-8deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.15) rotate(4deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+@keyframes trophyGlowPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+@keyframes confettiFall {
+  0% {
+    transform: translateY(-10vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh) rotate(360deg);
+    opacity: 0.7;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .trophy-glow,
+  .trophy-icon-pop,
+  .trophy-eyebrow,
+  .trophy-title,
+  .trophy-hint,
+  .confetti-piece {
+    animation: none !important;
+    opacity: 1;
+  }
+}
+
+/* ---------- football-esque intro hero ---------- */
+.pitch-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius);
+  padding: 34px 20px 26px;
+  background: radial-gradient(circle at 20% -10%, rgba(92, 255, 158, 0.16), transparent 55%), linear-gradient(180deg, #0e1a12, #0a0d0b 85%);
+  border: 1px solid var(--line);
+}
+.pitch-hero-lines {
+  position: absolute;
+  inset: 0;
+  opacity: 0.5;
+}
+.pitch-hero-content {
+  position: relative;
+  z-index: 1;
+}
+.ball-spin {
+  animation: ballSpin 6s linear infinite;
+  transform-origin: center;
+}
+@keyframes ballSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.kickoff {
+  animation: kickoff 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes kickoff {
+  0% {
+    transform: translateY(-14px) scale(0.85);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ball-spin,
+  .kickoff {
+    animation: none !important;
+    opacity: 1;
+  }
+}

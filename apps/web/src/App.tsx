@@ -31,7 +31,22 @@ import {
   type CreateFormState,
   type LeaderboardView,
 } from "./components.js";
+import { TrophyCelebration } from "./cards.js";
 import { fetchLeaderboard, submitCareer } from "./api.js";
+
+interface WonTrophy {
+  name: string;
+  year: number;
+}
+
+function extractTrophies(records: CareerRecord[]): WonTrophy[] {
+  const won: WonTrophy[] = [];
+  for (const r of records) {
+    if ("decisionOnly" in r) continue;
+    for (const t of r.trophies) won.push({ name: t.name, year: t.year });
+  }
+  return won;
+}
 
 type Screen = "intro" | "create" | "academy" | "career" | "retired";
 type Pace = 1 | 3;
@@ -68,6 +83,7 @@ export default function App() {
   const [finalScore, setFinalScore] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [rng, setRng] = useState<RNG>(() => createRng(randomSeed()));
+  const [celebrations, setCelebrations] = useState<WonTrophy[]>([]);
 
   function goToCreate() {
     setScreen("create");
@@ -91,6 +107,8 @@ export default function App() {
   }
 
   function applyBatchResult(result: BatchResult) {
+    const wonTrophies = extractTrophies(result.records);
+    if (wonTrophies.length) setCelebrations((prev) => [...prev, ...wonTrophies]);
     if (result.status === "awaiting") {
       setPending({ evt: result.pendingDecision, seasonsLeft: result.seasonsLeft, priorRecords: result.records });
       setPlayer(result.player);
@@ -155,12 +173,11 @@ export default function App() {
     setLeaderboard(null);
     setDraft(null);
     setRng(createRng(randomSeed()));
+    setCelebrations([]);
   }
 
   return (
     <div className="lxi">
-      <div className="stripe" />
-
       {screen === "intro" && <IntroScreen onStart={goToCreate} />}
       {screen === "create" && <CreateScreen form={form} setForm={setForm} countries={COUNTRIES} onNext={goToAcademy} />}
       {screen === "academy" && draft && <AcademyScreen form={form} offers={academyOffers} draft={draft} onPick={pickClub} />}
@@ -194,6 +211,14 @@ export default function App() {
       )}
 
       {screen === "retired" && player && leaderboard && <RetiredScreen player={player} verdict={verdictFor(player, finalScore)} score={finalScore} leaderboard={leaderboard} onRestart={restart} />}
+
+      {celebrations.length > 0 && (
+        <TrophyCelebration
+          trophyName={celebrations[0].name}
+          year={celebrations[0].year}
+          onContinue={() => setCelebrations((prev) => prev.slice(1))}
+        />
+      )}
     </div>
   );
 }
