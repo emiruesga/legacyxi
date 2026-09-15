@@ -23,7 +23,7 @@ import type {
 } from "@legacyxi/sim";
 import { LEAGUES, POSITIONS, TIER_LABEL, cardStats, computeNationalRank, computeWorldRank, formatMoney, ratingLabel } from "@legacyxi/sim";
 import type { LeaderboardRow } from "./api.js";
-import { Crest, Logo, LogoMark, NationLegacy, PlayerCard, PositionPicker, PotentialGauge } from "./cards.js";
+import { Crest, LogoMark, NationLegacy, PlayerCard, PositionPicker, PotentialGauge } from "./cards.js";
 
 function groupByName<T extends { name: string; year: number }>(items: T[]): { name: string; count: number; years: number[] }[] {
   const groups = new Map<string, number[]>();
@@ -467,10 +467,6 @@ export function RetiredScreen({
 
   return (
     <div className="wrap fade-in">
-      <div className="row between" style={{ marginBottom: 4 }}>
-        <Logo size={26} />
-        <div className="eyebrow">Career complete</div>
-      </div>
       <div className="card" style={{ marginTop: 8, display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 24, paddingBottom: 24, gap: 14 }}>
         <div className="badge">
           <Medal size={13} /> {verdict}

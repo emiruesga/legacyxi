@@ -31,7 +31,7 @@ import {
   type CreateFormState,
   type LeaderboardView,
 } from "./components.js";
-import { AwardCelebration, DebutCelebration, Logo, TrophyCelebration, WorldCupMoment } from "./cards.js";
+import { AppBar, AwardCelebration, DebutCelebration, TrophyCelebration, WorldCupMoment } from "./cards.js";
 import { fetchLeaderboard, submitCareer } from "./api.js";
 
 type Moment =
@@ -186,32 +186,29 @@ export default function App() {
     setCelebrations([]);
   }
 
+  const paceToggle = (
+    <div className="segmented">
+      {([
+        { id: 1, label: "Normal" },
+        { id: 3, label: "Express" },
+      ] as const).map((m) => (
+        <button key={m.id} className={`seg ${pace === m.id ? "active" : ""}`} onClick={() => setPace(m.id)}>
+          {m.label}
+        </button>
+      ))}
+    </div>
+  );
+
   return (
     <div className="lxi">
+      {screen !== "intro" && <AppBar right={screen === "career" ? paceToggle : screen === "retired" ? <span className="eyebrow">Career complete</span> : undefined} />}
+
       {screen === "intro" && <IntroScreen onStart={goToCreate} />}
       {screen === "create" && <CreateScreen form={form} setForm={setForm} countries={COUNTRIES} onNext={goToAcademy} />}
       {screen === "academy" && draft && <AcademyScreen form={form} offers={academyOffers} draft={draft} onPick={pickClub} />}
 
       {screen === "career" && player && (
         <div className="wrap fade-in">
-          <div className="row between" style={{ marginBottom: 14 }}>
-            <Logo size={26} />
-            <div className="row gap8">
-              {([
-                { id: 1, label: "Normal" },
-                { id: 3, label: "Express" },
-              ] as const).map((m) => (
-                <button
-                  key={m.id}
-                  className={`chip ${pace === m.id ? "active" : ""}`}
-                  style={{ padding: "5px 11px", fontSize: 12.5 }}
-                  onClick={() => setPace(m.id)}
-                >
-                  {m.label}
-                </button>
-              ))}
-            </div>
-          </div>
           <PlayerHeader player={player} />
           <div style={{ marginTop: 16 }}>{recap && <RecapCard records={recap.records} retired={recap.retired} onContinue={handleContinue} />}</div>
           <Timeline seasons={player.seasons} />

@@ -271,6 +271,19 @@ export function Logo({ size = 32 }: { size?: number }) {
   );
 }
 
+/** Persistent app chrome — sticky across every screen but the splash-style
+ * intro, so the product reads as one app rather than a set of pages. */
+export function AppBar({ right }: { right?: ReactNode }) {
+  return (
+    <div className="appbar">
+      <div className="appbar-inner">
+        <Logo size={24} />
+        {right}
+      </div>
+    </div>
+  );
+}
+
 const GAUGE_MIN = 40;
 const GAUGE_MAX = 99;
 
