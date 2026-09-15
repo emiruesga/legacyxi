@@ -194,10 +194,4 @@ export const AUTO_EVENTS: AutoEventDef[] = [
       return { ...p, trophies, rating: boost.rating, potential: boost.potential, note: line + boost.extraLine };
     },
   },
-  {
-    id: "goldenball",
-    weight: 1,
-    isEligible: (p, seasonGA) => p.rating >= 88 && seasonGA >= 22,
-    apply: (p) => ({ ...p, awards: [...p.awards, { name: "Golden Ball nomination", year: p.year }], note: "Nominated for the Golden Ball as one of the world's best players." }),
-  },
 ];

@@ -135,6 +135,7 @@ export interface SeasonRecord {
   rating: number;
   prevRating: number;
   trophies: Trophy[];
+  awardsWon: Award[];
   capGained: boolean;
   capDebut: boolean;
   worldRank: number | null;

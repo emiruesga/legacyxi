@@ -5,6 +5,7 @@ import {
   Medal,
   RotateCcw,
   Sparkles,
+  Star,
   TrendingDown,
   TrendingUp,
   Trophy,
@@ -23,6 +24,18 @@ import type {
 import { LEAGUES, POSITIONS, TIER_LABEL, cardStats, computeNationalRank, computeWorldRank, formatMoney, ratingLabel } from "@legacyxi/sim";
 import type { LeaderboardRow } from "./api.js";
 import { BallIcon, Crest, NationLegacy, PitchMarkings, PlayerCard, PositionPicker, PotentialGauge } from "./cards.js";
+
+function groupByName<T extends { name: string; year: number }>(items: T[]): { name: string; count: number; years: number[] }[] {
+  const groups = new Map<string, number[]>();
+  for (const item of items) {
+    const years = groups.get(item.name) ?? [];
+    years.push(item.year);
+    groups.set(item.name, years);
+  }
+  return Array.from(groups.entries())
+    .map(([name, years]) => ({ name, count: years.length, years: years.sort((a, b) => a - b) }))
+    .sort((a, b) => b.count - a.count);
+}
 
 export function Bar({ value, max = 100 }: { value: number; max?: number }) {
   const pct = Math.max(0, Math.min(100, (value / max) * 100));
@@ -364,6 +377,11 @@ export function RecapCard({ records, retired, onContinue }: { records: CareerRec
                   <Trophy size={14} color="var(--gold)" /> {t.name}
                 </div>
               ))}
+              {r.awardsWon.map((a, ai) => (
+                <div key={ai} className="row gap8" style={{ marginTop: 6, fontSize: 13.5 }}>
+                  <Star size={14} color="var(--accent)" /> {a.name}
+                </div>
+              ))}
               {r.lines.map((l, li) => (
                 <p key={li} className="muted" style={{ fontSize: 13, marginTop: 6 }}>
                   {l}
@@ -518,9 +536,30 @@ export function RetiredScreen({
             Honours cabinet
           </div>
           <div className="col gap8">
-            {player.trophies.map((t, i) => (
-              <div key={i} className="row gap8" style={{ fontSize: 14 }}>
-                <Trophy size={15} color="var(--gold)" /> {t.name} — {t.year}
+            {groupByName(player.trophies).map((g, i) => (
+              <div key={i} className="row between" style={{ fontSize: 14 }}>
+                <span className="row gap8">
+                  <Trophy size={15} color="var(--gold)" /> {g.name}
+                </span>
+                <span className="muted">{g.count > 1 ? `×${g.count}` : g.years[0]}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {player.awards.length > 0 && (
+        <div className="card" style={{ marginTop: 14 }}>
+          <div className="statlabel" style={{ marginBottom: 8 }}>
+            Individual awards
+          </div>
+          <div className="col gap8">
+            {groupByName(player.awards).map((g, i) => (
+              <div key={i} className="row between" style={{ fontSize: 14 }}>
+                <span className="row gap8">
+                  <Star size={15} color="var(--accent)" /> {g.name}
+                </span>
+                <span className="muted">{g.count > 1 ? `×${g.count}` : g.years[0]}</span>
               </div>
             ))}
           </div>

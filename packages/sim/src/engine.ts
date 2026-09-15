@@ -9,6 +9,7 @@ import {
   milestoneLabel,
   nextMilestoneTier,
   rollCaps,
+  rollIndividualAwards,
   rollTrophies,
 } from "./formulas.js";
 import type { RNG } from "./rng.js";
@@ -88,6 +89,10 @@ export function simulateSeason(playerIn: PlayerState, rng: RNG): { player: Playe
   // trophies
   const trophiesWon = rollTrophies(p, rng);
 
+  // individual season awards (Golden Boot, Player of the Season, Ballon d'Or)
+  const awardsWon = rollIndividualAwards(p, apps, goals, assists, rng);
+  for (const a of awardsWon) lines.push(`Won the ${a.name}.`);
+
   // caps
   const capResult = rollCaps(p, rng);
   if (capResult.gained) {
@@ -117,6 +122,7 @@ export function simulateSeason(playerIn: PlayerState, rng: RNG): { player: Playe
   p.assists += assists;
   p.cleanSheets += cleanSheets;
   p.trophies = [...p.trophies, ...trophiesWon];
+  p.awards = [...p.awards, ...awardsWon];
   p.marketValue = computeMarketValue(p);
 
   // peak + world rank + milestone
@@ -157,6 +163,7 @@ export function simulateSeason(playerIn: PlayerState, rng: RNG): { player: Playe
     rating: p.rating,
     prevRating,
     trophies: trophiesWon,
+    awardsWon,
     capGained: capResult.gained,
     capDebut: capResult.first,
     worldRank,

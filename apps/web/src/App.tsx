@@ -31,19 +31,23 @@ import {
   type CreateFormState,
   type LeaderboardView,
 } from "./components.js";
-import { DebutCelebration, TrophyCelebration } from "./cards.js";
+import { AwardCelebration, DebutCelebration, TrophyCelebration } from "./cards.js";
 import { fetchLeaderboard, submitCareer } from "./api.js";
 
-type Moment = { kind: "trophy"; name: string; year: number } | { kind: "debut"; country: string };
+type Moment =
+  | { kind: "trophy"; name: string; year: number }
+  | { kind: "award"; name: string; year: number }
+  | { kind: "debut"; country: string };
 
 /** Walk a batch's season records in order and surface every celebratory
- * moment (international debut, each trophy) in the order it happened. */
+ * moment (international debut, each trophy, each award) in the order it happened. */
 function extractMoments(records: CareerRecord[], countryName: string): Moment[] {
   const moments: Moment[] = [];
   for (const r of records) {
     if ("decisionOnly" in r) continue;
     if (r.capDebut) moments.push({ kind: "debut", country: countryName });
     for (const t of r.trophies) moments.push({ kind: "trophy", name: t.name, year: t.year });
+    for (const a of r.awardsWon) moments.push({ kind: "award", name: a.name, year: a.year });
   }
   return moments;
 }
@@ -215,11 +219,13 @@ export default function App() {
       {screen === "retired" && player && leaderboard && <RetiredScreen player={player} verdict={verdictFor(player, finalScore)} score={finalScore} leaderboard={leaderboard} onRestart={restart} />}
 
       {celebrations.length > 0 &&
-        (celebrations[0].kind === "trophy" ? (
-          <TrophyCelebration trophyName={celebrations[0].name} year={celebrations[0].year} onContinue={() => setCelebrations((prev) => prev.slice(1))} />
-        ) : (
-          <DebutCelebration countryName={celebrations[0].country} onContinue={() => setCelebrations((prev) => prev.slice(1))} />
-        ))}
+        (() => {
+          const moment = celebrations[0];
+          const dismiss = () => setCelebrations((prev) => prev.slice(1));
+          if (moment.kind === "trophy") return <TrophyCelebration trophyName={moment.name} year={moment.year} onContinue={dismiss} />;
+          if (moment.kind === "award") return <AwardCelebration awardName={moment.name} year={moment.year} onContinue={dismiss} />;
+          return <DebutCelebration countryName={moment.country} onContinue={dismiss} />;
+        })()}
     </div>
   );
 }

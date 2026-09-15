@@ -10,6 +10,7 @@ import {
   nextMilestoneTier,
   ratingToTier,
   rollDraft,
+  rollIndividualAwards,
   verdictFor,
 } from "../src/formulas.js";
 import { CLUBS, COUNTRIES, POSITIONS } from "../src/data.js";
@@ -104,6 +105,19 @@ describe("computeWorldRank", () => {
     expect(rank as number).toBeLessThanOrEqual(4); // no rng passed -> no jitter, should land at 1
   });
 
+  it("treats a 97+ rating as legitimately world-class — top 5, not merely top 100", () => {
+    // A near-perfect rating should read as "the best in the world", the
+    // way it does for the handful of real players who've ever carried one.
+    expect(computeWorldRank(98, "ST") as number).toBeLessThanOrEqual(5);
+    expect(computeWorldRank(97, "ST") as number).toBeLessThanOrEqual(8);
+  });
+
+  it("still gives a merely-elite 90 rating a believable mid-pack elite rank, not #1", () => {
+    const rank = computeWorldRank(90, "ST") as number;
+    expect(rank).toBeGreaterThan(10);
+    expect(rank).toBeLessThan(150);
+  });
+
   it("gives different pool sizes for different positions at the same rating", () => {
     const gk = computeWorldRank(80, "GK");
     const cm = computeWorldRank(80, "CM");
@@ -179,7 +193,7 @@ describe("careerScore / verdictFor", () => {
   });
 
   it("labels a heavily decorated, one-club career as a legend tier", () => {
-    const legend = basePlayer({ loyaltyStreakMax: 15, peakRating: 92, awards: [{ name: "Golden Ball nomination", year: 2030 }] });
+    const legend = basePlayer({ loyaltyStreakMax: 15, peakRating: 92, awards: [{ name: "Ballon d'Or", year: 2030 }] });
     expect(["One-Club Legend", "Global Icon"]).toContain(verdictFor(legend, careerScore(legend)));
   });
 });
@@ -210,5 +224,41 @@ describe("rollDraft rarity — 99 should read as a GOAT-tier outlier, not an imp
     ceilings.sort((a, b) => a - b);
     const median = ceilings[Math.floor(ceilings.length / 2)];
     expect(median).toBeLessThan(85);
+  });
+});
+
+describe("rollIndividualAwards", () => {
+  it("never awards a low-rated, low-scoring squad player anything", () => {
+    const scrub = basePlayer({ rating: 62 });
+    for (let seed = 1; seed <= 100; seed++) {
+      const won = rollIndividualAwards(scrub, 20, 2, 1, createRng(seed));
+      expect(won).toHaveLength(0);
+    }
+  });
+
+  it("can award the Golden Boot to a prolific scorer, named after their league", () => {
+    const sharpshooter = basePlayer({ rating: 85 });
+    let sawGoldenBoot = false;
+    for (let seed = 1; seed <= 300; seed++) {
+      const won = rollIndividualAwards(sharpshooter, 30, 28, 4, createRng(seed));
+      if (won.some((a) => a.name.endsWith("Golden Boot"))) {
+        sawGoldenBoot = true;
+        break;
+      }
+    }
+    expect(sawGoldenBoot).toBe(true);
+  });
+
+  it("can award a Ballon d'Or to a GOAT-tier season but never to a merely good one", () => {
+    const goat = basePlayer({ rating: 98 });
+    const good = basePlayer({ rating: 84 });
+    let sawGoatWin = false;
+    let sawGoodWin = false;
+    for (let seed = 1; seed <= 400; seed++) {
+      if (rollIndividualAwards(goat, 32, 26, 12, createRng(seed)).some((a) => a.name === "Ballon d'Or")) sawGoatWin = true;
+      if (rollIndividualAwards(good, 32, 26, 12, createRng(seed)).some((a) => a.name === "Ballon d'Or")) sawGoodWin = true;
+    }
+    expect(sawGoatWin).toBe(true);
+    expect(sawGoodWin).toBe(false);
   });
 });

@@ -83,6 +83,35 @@ export function rollTrophies(p: PlayerState, rng: RNG) {
   return won;
 }
 
+/** Individual-season awards — Golden Boot, league Player of the Season,
+ * Ballon d'Or — evaluated every season independently of trophies, so a
+ * player can pick up real individual recognition even at a club that
+ * never wins anything. Rolled from this season's own numbers, not a
+ * simulated field of rivals. */
+export function rollIndividualAwards(p: PlayerState, apps: number, goals: number, assists: number, rng: RNG): PlayerState["awards"] {
+  const league = leagueById(p.club.leagueId);
+  const won: PlayerState["awards"] = [];
+
+  const goalRate = apps > 0 ? goals / apps : 0;
+  const goldenBootChance = clamp((goalRate - 0.45) * 0.6, 0, 0.14);
+  if (goldenBootChance > 0 && rng.next() < goldenBootChance) {
+    won.push({ name: `${league.name} Golden Boot`, year: p.year });
+  }
+
+  const potyChance = clamp((p.rating - 80) / 19, 0, 1) * 0.09 * (p.club.tier <= 2 ? 1 : 0.5);
+  if (potyChance > 0 && rng.next() < potyChance) {
+    won.push({ name: `${league.name} Player of the Season`, year: p.year });
+  }
+
+  const ga = goals + assists;
+  const ballonDorChance = clamp((p.rating - 91) / 8, 0, 1) * clamp(ga / 30, 0, 1) * 0.12;
+  if (ballonDorChance > 0 && rng.next() < ballonDorChance) {
+    won.push({ name: "Ballon d'Or", year: p.year });
+  }
+
+  return won;
+}
+
 export function nationalThreshold(tier: number): number {
   return ({ 1: 72, 2: 68, 3: 64, 4: 60, 5: 56 } as Record<number, number>)[tier];
 }
@@ -104,12 +133,19 @@ export function computeMarketValue(p: PlayerState): number {
 
 /** Position-specific pool sizes mean equal ratings map to different ranks —
  * a 90-rated CM competes with 1500 peers, a 90-rated GK with 600. */
+/** How sharply rank falls off as rating drops from 99 — high enough that
+ * elite ratings (97+) land in the top few in the world, not merely "good",
+ * the way a real Ballon d'Or-tier season should read. */
+const WORLD_RANK_STEEPNESS = 2.6;
+
 export function computeWorldRank(rating: number, position: PositionId, rng?: RNG): number | null {
   if (rating < 65) return null;
   const poolSize = WORLD_POOL_SIZE[position];
-  let pct = clamp((rating - 65) / (99 - 65), 0, 1);
-  pct = Math.pow(pct, 1.6);
-  let r = Math.round(poolSize - pct * (poolSize - 1));
+  // x is 0 at a perfect 99 and 1 at the ranking threshold (65) — raising it
+  // to a steep power keeps almost the entire gap between "elite" and
+  // "the actual best in the world" compressed into the top few ratings.
+  const x = clamp((99 - rating) / (99 - 65), 0, 1);
+  let r = Math.round(1 + Math.pow(x, WORLD_RANK_STEEPNESS) * (poolSize - 1));
   const jitter = rng ? rng.int(-3, 3) : 0;
   r = clamp(r + jitter, 1, poolSize);
   return r;

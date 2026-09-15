@@ -1,5 +1,5 @@
 import type { ReactNode, CSSProperties } from "react";
-import { ShieldCheck, Trophy } from "lucide-react";
+import { ShieldCheck, Star, Trophy } from "lucide-react";
 import type { CardStats, CrestColors, PositionId } from "@legacyxi/sim";
 import { POSITIONS, crestFor } from "@legacyxi/sim";
 
@@ -206,6 +206,19 @@ export function DebutCelebration({ countryName, onContinue }: { countryName: str
       title={`Full debut for ${countryName}`}
       hint="tap to continue"
       confetti={false}
+      onContinue={onContinue}
+    />
+  );
+}
+
+export function AwardCelebration({ awardName, year, onContinue }: { awardName: string; year: number; onContinue: () => void }) {
+  return (
+    <MomentCelebration
+      icon={<Star size={52} color="#5cff9e" className="trophy-icon-pop" />}
+      glowColor="#5cff9e"
+      eyebrow="Award won"
+      title={awardName}
+      hint={`${year} · tap to continue`}
       onContinue={onContinue}
     />
   );
