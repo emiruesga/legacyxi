@@ -23,7 +23,7 @@ import type {
 } from "@legacyxi/sim";
 import { LEAGUES, POSITIONS, TIER_LABEL, cardStats, computeNationalRank, computeWorldRank, formatMoney, ratingLabel } from "@legacyxi/sim";
 import type { LeaderboardRow } from "./api.js";
-import { BallIcon, Crest, NationLegacy, PitchMarkings, PlayerCard, PositionPicker, PotentialGauge } from "./cards.js";
+import { Crest, Logo, LogoMark, NationLegacy, PlayerCard, PositionPicker, PotentialGauge } from "./cards.js";
 
 function groupByName<T extends { name: string; year: number }>(items: T[]): { name: string; count: number; years: number[] }[] {
   const groups = new Map<string, number[]>();
@@ -68,23 +68,17 @@ export function RatingChart({ seasons }: { seasons: PlayerState["seasons"] }) {
 export function IntroScreen({ onStart }: { onStart: () => void }) {
   return (
     <div className="wrap fade-in">
-      <div className="pitch-hero">
-        <PitchMarkings />
-        <div className="pitch-hero-content">
-          <div className="row gap12" style={{ alignItems: "center" }}>
-            <BallIcon size={36} className="ball-spin kickoff" />
-            <div className="eyebrow">Football career simulator</div>
-          </div>
-          <h1 className="hero-title kickoff" style={{ marginTop: 10 }}>
-            Legacy XI
-          </h1>
-          <p className="muted" style={{ marginTop: 14, fontSize: 15.5 }}>
-            Create a footballer, live an entire career in a few minutes, and see how far your
-            legacy climbs — from an academy trial at sixteen to a place among the all-time greats.
+      <div className="intro-hero">
+        <LogoMark size={52} />
+        <div>
+          <h1 className="hero-title">Legacy XI</h1>
+          <p className="muted intro-tagline" style={{ marginTop: 10, fontSize: 15.5 }}>
+            Live an entire football career in a few minutes — from an academy trial at
+            sixteen to a place among the all-time greats.
           </p>
         </div>
       </div>
-      <div className="grid3" style={{ marginTop: 22 }}>
+      <div className="grid3" style={{ marginTop: 28 }}>
         <div className="card" style={{ padding: 14, textAlign: "center" }}>
           <div className="num statbig" style={{ fontSize: 26 }}>
             {LEAGUES.length}
@@ -104,10 +98,10 @@ export function IntroScreen({ onStart }: { onStart: () => void }) {
           <div className="statlabel">All-time board</div>
         </div>
       </div>
-      <button className="btn btn-primary btn-block" style={{ marginTop: 26 }} onClick={onStart}>
+      <button className="btn btn-primary btn-block" style={{ marginTop: 22 }} onClick={onStart}>
         Start your career <ChevronRight size={18} />
       </button>
-      <p className="muted" style={{ marginTop: 12, fontSize: 12.5 }}>
+      <p className="muted" style={{ marginTop: 12, fontSize: 12.5, textAlign: "center" }}>
         No account needed. Every run tells a different story.
       </p>
     </div>
@@ -473,7 +467,10 @@ export function RetiredScreen({
 
   return (
     <div className="wrap fade-in">
-      <div className="eyebrow">Career complete</div>
+      <div className="row between" style={{ marginBottom: 4 }}>
+        <Logo size={26} />
+        <div className="eyebrow">Career complete</div>
+      </div>
       <div className="card" style={{ marginTop: 8, display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 24, paddingBottom: 24, gap: 14 }}>
         <div className="badge">
           <Medal size={13} /> {verdict}

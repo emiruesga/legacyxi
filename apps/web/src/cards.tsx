@@ -224,20 +224,29 @@ export function AwardCelebration({ awardName, year, onContinue }: { awardName: s
   );
 }
 
-/** Faint pitch markings behind the intro hero — touchlines, center circle,
- * halfway line, both penalty boxes. Purely decorative. */
-export function PitchMarkings() {
+/** The Legacy XI mark — a flat, single-accent monogram badge. No gradient,
+ * no glow: a logo, not a hero graphic. */
+export function LogoMark({ size = 40 }: { size?: number }) {
   return (
-    <svg className="pitch-hero-lines" viewBox="0 0 400 260" preserveAspectRatio="none" aria-hidden="true">
-      <g fill="none" stroke="#5cff9e" strokeOpacity="0.5" strokeWidth="1.4">
-        <rect x="10" y="10" width="380" height="240" />
-        <line x1="10" y1="130" x2="390" y2="130" />
-        <circle cx="200" cy="130" r="36" />
-        <circle cx="200" cy="130" r="2" fill="#5cff9e" />
-        <rect x="10" y="70" width="46" height="120" />
-        <rect x="344" y="70" width="46" height="120" />
-      </g>
+    <svg width={size} height={size} viewBox="0 0 40 40" aria-hidden="true">
+      <rect x="1" y="1" width="38" height="38" rx="10" fill="var(--surface-2)" stroke="var(--line-strong)" />
+      <text x="20" y="24" textAnchor="middle" fontFamily="Barlow Condensed, sans-serif" fontWeight="800" fontSize="16" fill="var(--ink)">
+        XI
+      </text>
+      <line x1="12" y1="29" x2="28" y2="29" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" />
     </svg>
+  );
+}
+
+/** Mark + wordmark lockup for the top of a screen. */
+export function Logo({ size = 32 }: { size?: number }) {
+  return (
+    <div className="logo-lockup">
+      <LogoMark size={size} />
+      <span className="logo-wordmark">
+        Legacy <span className="xi">XI</span>
+      </span>
+    </div>
   );
 }
 
@@ -310,19 +319,5 @@ export function NationLegacy({ flag, countryName, rows }: { flag: string; countr
         ))}
       </div>
     </div>
-  );
-}
-
-export function BallIcon({ size = 34, className = "" }: { size?: number; className?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 40 40" className={className}>
-      <circle cx="20" cy="20" r="18" fill="#f1f5f0" stroke="#1b1305" strokeWidth="1.4" />
-      <g fill="#14171a">
-        <polygon points="20,10 26,14.5 24,21.5 16,21.5 14,14.5" />
-        <polygon points="8,17 14,14.5 16,21.5 12,27.5 6,25" />
-        <polygon points="32,17 26,14.5 24,21.5 28,27.5 34,25" />
-        <polygon points="14,32 16,24.5 24,24.5 26,32 20,36" />
-      </g>
-    </svg>
   );
 }

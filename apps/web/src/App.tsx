@@ -31,7 +31,7 @@ import {
   type CreateFormState,
   type LeaderboardView,
 } from "./components.js";
-import { AwardCelebration, DebutCelebration, TrophyCelebration } from "./cards.js";
+import { AwardCelebration, DebutCelebration, Logo, TrophyCelebration } from "./cards.js";
 import { fetchLeaderboard, submitCareer } from "./api.js";
 
 type Moment =
@@ -191,7 +191,7 @@ export default function App() {
       {screen === "career" && player && (
         <div className="wrap">
           <div className="row between" style={{ marginBottom: 14 }}>
-            <div className="eyebrow">CAREER MODE</div>
+            <Logo size={26} />
             <div className="row gap8">
               {([
                 { id: 1, label: "Normal" },

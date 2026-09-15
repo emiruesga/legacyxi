@@ -38,7 +38,7 @@ body {
 .lxi {
   min-height: 100vh;
   position: relative;
-  background: radial-gradient(circle at 50% -10%, rgba(92, 255, 158, 0.08), transparent 55%), var(--ground);
+  background: var(--ground);
 }
 
 .num {
@@ -629,55 +629,36 @@ table.stat-table th.num {
   }
 }
 
-/* ---------- football-esque intro hero ---------- */
-.pitch-hero {
-  position: relative;
-  overflow: hidden;
-  border-radius: var(--radius);
-  padding: 34px 20px 26px;
-  background: radial-gradient(circle at 20% -10%, rgba(92, 255, 158, 0.16), transparent 55%), linear-gradient(180deg, #0e1a12, #0a0d0b 85%);
-  border: 1px solid var(--line);
+/* ---------- logo ---------- */
+.logo-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
 }
-.pitch-hero-lines {
-  position: absolute;
-  inset: 0;
-  opacity: 0.5;
+.logo-wordmark {
+  font-family: "Oswald", sans-serif;
+  font-weight: 500;
+  font-size: 17px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink);
 }
-.pitch-hero-content {
-  position: relative;
-  z-index: 1;
+.logo-wordmark .xi {
+  font-weight: 700;
+  color: var(--accent);
 }
-.ball-spin {
-  animation: ballSpin 6s linear infinite;
-  transform-origin: center;
+
+/* ---------- intro hero ---------- */
+.intro-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+  padding: 48px 0 8px;
 }
-@keyframes ballSpin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-.kickoff {
-  animation: kickoff 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-@keyframes kickoff {
-  0% {
-    transform: translateY(-14px) scale(0.85);
-    opacity: 0;
-  }
-  100% {
-    transform: translateY(0) scale(1);
-    opacity: 1;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .ball-spin,
-  .kickoff {
-    animation: none !important;
-    opacity: 1;
-  }
+.intro-tagline {
+  max-width: 320px;
 }
 
 /* ---------- potential gauge ---------- */
