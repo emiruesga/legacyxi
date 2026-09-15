@@ -1,0 +1,26 @@
+// Dev datasource is SQLite for a zero-config local run; swap "provider" to
+// "postgresql" and DATABASE_URL to a Postgres connection string for
+// production — no other change needed, Prisma abstracts the rest.
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model CareerEntry {
+  id          String   @id @default(cuid())
+  name        String
+  flag        String
+  position    String
+  score       Int
+  peakRating  Int
+  trophies    Int
+  seasons     Int
+  caps        Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([score])
+}

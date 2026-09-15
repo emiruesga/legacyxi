@@ -1,0 +1,14 @@
+{
+  "name": "legacyxi",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "test": "npm run test --workspace=@legacyxi/sim",
+    "dev:web": "npm run dev --workspace=@legacyxi/web",
+    "dev:server": "npm run dev --workspace=@legacyxi/server"
+  }
+}
