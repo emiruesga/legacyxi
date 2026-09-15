@@ -1,5 +1,5 @@
 import type { ReactNode, CSSProperties } from "react";
-import { ShieldCheck, Star, Trophy } from "lucide-react";
+import { Globe2, ShieldCheck, Star, Trophy } from "lucide-react";
 import type { CardStats, CrestColors, PositionId } from "@legacyxi/sim";
 import { POSITIONS, crestFor } from "@legacyxi/sim";
 
@@ -221,6 +221,27 @@ export function AwardCelebration({ awardName, year, onContinue }: { awardName: s
       hint={`${year} · tap to continue`}
       onContinue={onContinue}
     />
+  );
+}
+
+/** The one moment in the calendar bigger than a trophy win: making the
+ * World Cup squad at all. Distinct staging from MomentCelebration on
+ * purpose — a spinning globe, the flag popping in, a light sweep across
+ * the panel — so it reads as the biggest stage in the game, not just
+ * another award. */
+export function WorldCupMoment({ countryName, flag, year, onContinue }: { countryName: string; flag: string; year: number; onContinue: () => void }) {
+  return (
+    <div className="worldcup-overlay" onClick={onContinue} role="button" tabIndex={0}>
+      <div className="worldcup-sweep" aria-hidden="true" />
+      <div className="worldcup-panel">
+        <Globe2 size={38} color="#e4c158" className="worldcup-globe" />
+        <div className="worldcup-flag">{flag}</div>
+        <div className="worldcup-eyebrow">World Cup</div>
+        <h2 className="worldcup-title">Called up for {countryName}</h2>
+        <p className="worldcup-subtitle">Representing {countryName} on the world's biggest stage, {year}.</p>
+        <div className="worldcup-hint">tap to continue</div>
+      </div>
+    </div>
   );
 }
 

@@ -99,6 +99,29 @@ describe("rating convergence — a maxed-potential player should actually reach 
   });
 });
 
+describe("worldCupCallUp flag", () => {
+  it("marks the season record whenever the World Cup call-up event actually fires", () => {
+    let sawCallUp = false;
+    for (let seed = 1; seed <= 300; seed++) {
+      const rng = createRng(seed * 65599);
+      const player = { ...makeStartingPlayer(seed), caps: 5, year: 2026, careerStartYear: 2024 };
+      const { record } = simulateSeason(player, rng);
+      if (record.worldCupCallUp) {
+        sawCallUp = true;
+        expect(record.lines.join(" ")).toContain("World Cup");
+      }
+    }
+    expect(sawCallUp).toBe(true);
+  });
+
+  it("is false for a season where no World Cup call-up happened", () => {
+    const rng = createRng(2);
+    const player = { ...makeStartingPlayer(1), caps: 0, year: 2025, careerStartYear: 2024 };
+    const { record } = simulateSeason(player, rng);
+    expect(record.worldCupCallUp).toBe(false);
+  });
+});
+
 describe("continueBatch", () => {
   it("stops on the first eligible decision instead of over-simulating", () => {
     const rng = createRng(4);

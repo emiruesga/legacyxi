@@ -138,6 +138,7 @@ export interface SeasonRecord {
   awardsWon: Award[];
   capGained: boolean;
   capDebut: boolean;
+  worldCupCallUp: boolean;
   worldRank: number | null;
   milestoneText: string | null;
   lines: string[];

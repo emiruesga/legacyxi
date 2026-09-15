@@ -271,16 +271,16 @@ input::placeholder {
   background: var(--accent);
 }
 .fade-in {
-  animation: lxiFade 0.35s ease both;
+  animation: lxiFade 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 @keyframes lxiFade {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(14px) scale(0.985);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -520,7 +520,7 @@ table.stat-table th.num {
 .trophy-overlay {
   position: fixed;
   inset: 0;
-  background: radial-gradient(circle at 50% 38%, rgba(228, 193, 88, 0.16), rgba(4, 8, 6, 0.94) 62%);
+  background: radial-gradient(circle at 50% 38%, rgba(228, 193, 88, 0.18), transparent 62%), var(--ground);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -624,6 +624,110 @@ table.stat-table th.num {
   .trophy-title,
   .trophy-hint,
   .confetti-piece {
+    animation: none !important;
+    opacity: 1;
+  }
+}
+
+/* ---------- World Cup call-up: bigger, distinct from a regular moment ---------- */
+.worldcup-overlay {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 50% 30%, rgba(228, 193, 88, 0.22), transparent 65%), var(--ground);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 40;
+  padding: 24px;
+  cursor: pointer;
+  overflow: hidden;
+}
+.worldcup-sweep {
+  position: absolute;
+  inset: -20%;
+  background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, 0.12) 50%, transparent 60%);
+  animation: worldcupSweep 1.4s ease-out both;
+}
+.worldcup-panel {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  max-width: 360px;
+}
+.worldcup-globe {
+  animation: worldcupGlobeSpin 12s linear infinite;
+}
+.worldcup-flag {
+  font-size: 60px;
+  line-height: 1;
+  animation: worldcupFlagPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.worldcup-eyebrow {
+  font-family: "Oswald", sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  animation: lxiFade 0.4s ease 0.15s both;
+}
+.worldcup-title {
+  font-size: 30px;
+  color: var(--ink);
+  animation: lxiFade 0.4s ease 0.25s both;
+}
+.worldcup-subtitle {
+  font-size: 14px;
+  color: var(--ink-dim);
+  animation: lxiFade 0.4s ease 0.4s both;
+}
+.worldcup-hint {
+  font-size: 12.5px;
+  color: var(--ink-faint);
+  animation: lxiFade 0.4s ease 0.5s both;
+}
+@keyframes worldcupFlagPop {
+  0% {
+    transform: scale(0.4) rotate(-6deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.15) rotate(3deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+@keyframes worldcupGlobeSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes worldcupSweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .worldcup-globe,
+  .worldcup-flag,
+  .worldcup-eyebrow,
+  .worldcup-title,
+  .worldcup-subtitle,
+  .worldcup-hint,
+  .worldcup-sweep {
     animation: none !important;
     opacity: 1;
   }

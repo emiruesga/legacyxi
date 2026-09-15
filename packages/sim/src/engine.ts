@@ -101,9 +101,11 @@ export function simulateSeason(playerIn: PlayerState, rng: RNG): { player: Playe
   }
 
   // auto flavor event (at most one, weighted, eligible)
+  let worldCupCallUp = false;
   const eligibleAuto = AUTO_EVENTS.filter((e) => e.isEligible(p, goals + assists));
   if (eligibleAuto.length && rng.next() < 0.42) {
     const evt = rng.weighted(eligibleAuto);
+    worldCupCallUp = evt.id === "worldCup";
     const result = evt.apply(p, rng);
     const { note, ...rest } = result;
     p = { ...rest, flags: { ...rest.flags } };
@@ -166,6 +168,7 @@ export function simulateSeason(playerIn: PlayerState, rng: RNG): { player: Playe
     awardsWon,
     capGained: capResult.gained,
     capDebut: capResult.first,
+    worldCupCallUp,
     worldRank,
     milestoneText,
     lines,

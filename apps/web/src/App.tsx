@@ -31,21 +31,25 @@ import {
   type CreateFormState,
   type LeaderboardView,
 } from "./components.js";
-import { AwardCelebration, DebutCelebration, Logo, TrophyCelebration } from "./cards.js";
+import { AwardCelebration, DebutCelebration, Logo, TrophyCelebration, WorldCupMoment } from "./cards.js";
 import { fetchLeaderboard, submitCareer } from "./api.js";
 
 type Moment =
   | { kind: "trophy"; name: string; year: number }
   | { kind: "award"; name: string; year: number }
-  | { kind: "debut"; country: string };
+  | { kind: "debut"; country: string }
+  | { kind: "worldCup"; country: string; flag: string; year: number };
 
 /** Walk a batch's season records in order and surface every celebratory
- * moment (international debut, each trophy, each award) in the order it happened. */
-function extractMoments(records: CareerRecord[], countryName: string): Moment[] {
+ * moment (international debut, World Cup call-up, each trophy, each award)
+ * in the order it happened. The World Cup call-up comes before that
+ * season's trophy — you make the squad before you can win it. */
+function extractMoments(records: CareerRecord[], countryName: string, countryFlag: string): Moment[] {
   const moments: Moment[] = [];
   for (const r of records) {
     if ("decisionOnly" in r) continue;
     if (r.capDebut) moments.push({ kind: "debut", country: countryName });
+    if (r.worldCupCallUp) moments.push({ kind: "worldCup", country: countryName, flag: countryFlag, year: r.year });
     for (const t of r.trophies) moments.push({ kind: "trophy", name: t.name, year: t.year });
     for (const a of r.awardsWon) moments.push({ kind: "award", name: a.name, year: a.year });
   }
@@ -111,7 +115,7 @@ export default function App() {
   }
 
   function applyBatchResult(result: BatchResult) {
-    const moments = extractMoments(result.records, result.player.nationality.name);
+    const moments = extractMoments(result.records, result.player.nationality.name, result.player.nationality.flag);
     if (moments.length) setCelebrations((prev) => [...prev, ...moments]);
     if (result.status === "awaiting") {
       setPending({ evt: result.pendingDecision, seasonsLeft: result.seasonsLeft, priorRecords: result.records });
@@ -189,7 +193,7 @@ export default function App() {
       {screen === "academy" && draft && <AcademyScreen form={form} offers={academyOffers} draft={draft} onPick={pickClub} />}
 
       {screen === "career" && player && (
-        <div className="wrap">
+        <div className="wrap fade-in">
           <div className="row between" style={{ marginBottom: 14 }}>
             <Logo size={26} />
             <div className="row gap8">
@@ -224,6 +228,7 @@ export default function App() {
           const dismiss = () => setCelebrations((prev) => prev.slice(1));
           if (moment.kind === "trophy") return <TrophyCelebration trophyName={moment.name} year={moment.year} onContinue={dismiss} />;
           if (moment.kind === "award") return <AwardCelebration awardName={moment.name} year={moment.year} onContinue={dismiss} />;
+          if (moment.kind === "worldCup") return <WorldCupMoment countryName={moment.country} flag={moment.flag} year={moment.year} onContinue={dismiss} />;
           return <DebutCelebration countryName={moment.country} onContinue={dismiss} />;
         })()}
     </div>
