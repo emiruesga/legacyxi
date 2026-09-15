@@ -1,6 +1,7 @@
 export type PositionId = "GK" | "CB" | "FB" | "DM" | "CM" | "AM" | "W" | "ST";
 export type PositionRow = "GK" | "DEF" | "MID" | "ATT";
 export type Region = "europe" | "latam" | "africa" | "asia" | "northam";
+export type Confederation = "UEFA" | "CONMEBOL" | "CONCACAF" | "CAF" | "AFC";
 export type Foot = "Left" | "Right";
 export type TrophyLevel = "league" | "cup" | "continental" | "international";
 
@@ -23,13 +24,33 @@ export interface Country {
   flag: string;
   tier: 1 | 2 | 3 | 4 | 5;
   region: Region;
+  leagueId: string | null;
+}
+
+/** A real-world top-flight league. Club/league names and competition names
+ * are real; crest artwork is generated (see crestColors), never sourced. */
+export interface League {
+  id: string;
+  name: string;
+  country: string;
+  tier: 1 | 2 | 3 | 4 | 5;
+  confederation: Confederation;
+  cupName: string;
+  continentalName: string;
 }
 
 export interface Club {
   name: string;
+  leagueId: string;
   tier: 1 | 2 | 3 | 4 | 5;
   ambition: number; // 12-99
-  region: Region;
+}
+
+/** A stylized, generated two-tone crest — never a real club's logo. */
+export interface CrestColors {
+  primary: string;
+  secondary: string;
+  initials: string;
 }
 
 export interface Trophy {
@@ -42,6 +63,17 @@ export interface Trophy {
 export interface Award {
   name: string;
   year: number;
+}
+
+/** FIFA-card-style flavor attributes, derived from rating + position for
+ * display only — the simulation itself never reads these. */
+export interface CardStats {
+  pac: number;
+  sho: number;
+  pas: number;
+  dri: number;
+  def: number;
+  phy: number;
 }
 
 export interface PlayerFlags {

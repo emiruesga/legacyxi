@@ -4,7 +4,7 @@ import {
   careerScore,
   continueBatch,
   createRng,
-  makeClub,
+  homeClubsFor,
   newPlayer,
   randomSeed,
   resolveDecision,
@@ -74,12 +74,7 @@ export default function App() {
   }
 
   function goToAcademy() {
-    const nat = form.nationality;
-    const offers = [
-      makeClub(nat.region, rng.choice([3, 4]), rng),
-      makeClub(nat.region, rng.choice([4, 5]), rng),
-      makeClub(nat.region, rng.choice([2, 3]), rng),
-    ];
+    const offers = homeClubsFor(form.nationality, rng, 3);
     setAcademyOffers(offers);
     setDraft(rollDraft(rng));
     setScreen("academy");

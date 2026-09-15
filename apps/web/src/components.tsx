@@ -20,8 +20,9 @@ import type {
   PlayerState,
   PositionId,
 } from "@legacyxi/sim";
-import { POSITIONS, TIER_LABEL, computeWorldRank, formatMoney, ratingLabel } from "@legacyxi/sim";
+import { LEAGUES, POSITIONS, TIER_LABEL, cardStats, computeWorldRank, formatMoney, ratingLabel } from "@legacyxi/sim";
 import type { LeaderboardRow } from "./api.js";
+import { Crest, PlayerCard, PositionPicker } from "./cards.js";
 
 export function Bar({ value, max = 100 }: { value: number; max?: number }) {
   const pct = Math.max(0, Math.min(100, (value / max) * 100));
@@ -46,7 +47,7 @@ export function RatingChart({ seasons }: { seasons: PlayerState["seasons"] }) {
   });
   return (
     <svg viewBox={`0 0 ${width} ${height}`} width="100%" height={height} style={{ display: "block" }}>
-      <polyline points={points.join(" ")} fill="none" stroke="#d7a63e" strokeWidth={2.5} />
+      <polyline points={points.join(" ")} fill="none" stroke="var(--accent)" strokeWidth={2.5} />
     </svg>
   );
 }
@@ -54,11 +55,9 @@ export function RatingChart({ seasons }: { seasons: PlayerState["seasons"] }) {
 export function IntroScreen({ onStart }: { onStart: () => void }) {
   return (
     <div className="wrap fade-in">
-      <div className="eyebrow">FREE CAREER SIMULATOR</div>
-      <h1 className="hero-title" style={{ marginTop: 6 }}>
-        LEGACY
-        <br />
-        XI
+      <div className="eyebrow">Football career simulator</div>
+      <h1 className="hero-title" style={{ marginTop: 8 }}>
+        Legacy XI
       </h1>
       <p className="muted" style={{ marginTop: 14, fontSize: 15.5 }}>
         Create a footballer, live an entire career in a few minutes, and see how far your
@@ -67,21 +66,21 @@ export function IntroScreen({ onStart }: { onStart: () => void }) {
       <div className="grid3" style={{ marginTop: 22 }}>
         <div className="card" style={{ padding: 14, textAlign: "center" }}>
           <div className="num statbig" style={{ fontSize: 26 }}>
-            32
+            {LEAGUES.length}
           </div>
-          <div className="statlabel">NATIONALITIES</div>
+          <div className="statlabel">Real leagues</div>
         </div>
         <div className="card" style={{ padding: 14, textAlign: "center" }}>
           <div className="num statbig" style={{ fontSize: 26 }}>
-            ∞
+            99
           </div>
-          <div className="statlabel">CAREER PATHS</div>
+          <div className="statlabel">GOAT ceiling</div>
         </div>
         <div className="card" style={{ padding: 14, textAlign: "center" }}>
           <div className="num statbig" style={{ fontSize: 26 }}>
             1
           </div>
-          <div className="statlabel">ALL-TIME BOARD</div>
+          <div className="statlabel">All-time board</div>
         </div>
       </div>
       <button className="btn btn-primary btn-block" style={{ marginTop: 26 }} onClick={onStart}>
@@ -113,11 +112,10 @@ export function CreateScreen({
   countries: Country[];
   onNext: () => void;
 }) {
-  const rowFor = (row: "GK" | "DEF" | "MID" | "ATT") => POSITIONS.filter((p) => p.row === row);
   return (
     <div className="wrap fade-in">
-      <div className="eyebrow">STEP 1 OF 2</div>
-      <h2 style={{ fontSize: 30, marginTop: 6 }}>Define your identity</h2>
+      <div className="eyebrow">Step 1 of 2</div>
+      <h2 style={{ fontSize: 28, marginTop: 6 }}>Define your identity</h2>
       <div className="divider" />
 
       <label className="label">Name</label>
@@ -169,38 +167,9 @@ export function CreateScreen({
       </div>
 
       <label className="label" style={{ marginTop: 18 }}>
-        Position
+        Position — tap where you play
       </label>
-      <div className="pos-grid">
-        <div className="pos-row" style={{ gridTemplateColumns: "repeat(2,1fr)" }}>
-          {rowFor("ATT").map((p) => (
-            <button key={p.id} className={`pos-btn ${form.position === p.id ? "active" : ""}`} onClick={() => setForm({ ...form, position: p.id })}>
-              {p.label}
-            </button>
-          ))}
-        </div>
-        <div className="pos-row" style={{ gridTemplateColumns: "repeat(3,1fr)" }}>
-          {rowFor("MID").map((p) => (
-            <button key={p.id} className={`pos-btn ${form.position === p.id ? "active" : ""}`} onClick={() => setForm({ ...form, position: p.id })}>
-              {p.label}
-            </button>
-          ))}
-        </div>
-        <div className="pos-row" style={{ gridTemplateColumns: "repeat(2,1fr)" }}>
-          {rowFor("DEF").map((p) => (
-            <button key={p.id} className={`pos-btn ${form.position === p.id ? "active" : ""}`} onClick={() => setForm({ ...form, position: p.id })}>
-              {p.label}
-            </button>
-          ))}
-        </div>
-        <div className="pos-row" style={{ gridTemplateColumns: "1fr" }}>
-          {rowFor("GK").map((p) => (
-            <button key={p.id} className={`pos-btn ${form.position === p.id ? "active" : ""}`} onClick={() => setForm({ ...form, position: p.id })}>
-              {p.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      <PositionPicker value={form.position} onChange={(position) => setForm({ ...form, position })} />
 
       <button className="btn btn-primary btn-block" style={{ marginTop: 22 }} disabled={!form.position} onClick={onNext}>
         Find an academy <ChevronRight size={18} />
@@ -223,8 +192,8 @@ export function AcademyScreen({
   const posLabel = POSITIONS.find((p) => p.id === form.position)?.label ?? "";
   return (
     <div className="wrap fade-in">
-      <div className="eyebrow">STEP 2 OF 2</div>
-      <h2 style={{ fontSize: 30, marginTop: 6 }}>Choose your first club</h2>
+      <div className="eyebrow">Step 2 of 2</div>
+      <h2 style={{ fontSize: 28, marginTop: 6 }}>Choose your first club</h2>
       <p className="muted" style={{ marginTop: 6 }}>
         {form.name || "Your player"}, age 16 · {form.nationality.flag} {form.nationality.name} · {posLabel}
       </p>
@@ -233,20 +202,31 @@ export function AcademyScreen({
       </div>
 
       <div className="col gap12" style={{ marginTop: 18 }}>
-        {offers.map((o, i) => (
-          <button key={i} className="card btn-ghost" style={{ textAlign: "left", cursor: "pointer" }} onClick={() => onPick(o)}>
-            <div className="row between">
-              <h3 style={{ fontSize: 20 }}>{o.name}</h3>
-              <span className="badge">{TIER_LABEL[o.tier]}</span>
-            </div>
-            <div className="muted" style={{ fontSize: 13, marginTop: 6 }}>
-              Academy ambition
-            </div>
-            <div style={{ marginTop: 5 }}>
-              <Bar value={o.ambition} />
-            </div>
-          </button>
-        ))}
+        {offers.map((o, i) => {
+          const league = LEAGUES.find((l) => l.id === o.leagueId);
+          return (
+            <button key={i} className="card btn-ghost" style={{ textAlign: "left", cursor: "pointer" }} onClick={() => onPick(o)}>
+              <div className="row gap12">
+                <Crest clubName={o.name} size={34} />
+                <div style={{ flex: 1 }}>
+                  <div className="row between">
+                    <h3 style={{ fontSize: 18 }}>{o.name}</h3>
+                    <span className="badge">{TIER_LABEL[o.tier]}</span>
+                  </div>
+                  <div className="muted" style={{ fontSize: 12.5, marginTop: 2 }}>
+                    {league?.name}
+                  </div>
+                </div>
+              </div>
+              <div className="muted" style={{ fontSize: 12.5, marginTop: 10 }}>
+                Academy ambition
+              </div>
+              <div style={{ marginTop: 5 }}>
+                <Bar value={o.ambition} />
+              </div>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -255,55 +235,57 @@ export function AcademyScreen({
 export function PlayerHeader({ player }: { player: PlayerState }) {
   const lastSeason = player.seasons[player.seasons.length - 1];
   const rank = lastSeason ? lastSeason.worldRank : computeWorldRank(player.rating, player.position);
-  const posLabel = POSITIONS.find((p) => p.id === player.position)?.label ?? "";
   return (
     <div className="card">
-      <div className="row between">
-        <div>
-          <div className="row gap8">
-            <h3 style={{ fontSize: 22 }}>{player.name}</h3>
-            <span className="muted" style={{ fontSize: 14 }}>
-              #{player.number}
-            </span>
+      <div className="row gap16" style={{ alignItems: "flex-start" }}>
+        <PlayerCard
+          rating={player.rating}
+          position={player.position}
+          name={player.name}
+          flag={player.nationality.flag}
+          clubName={player.club.name}
+          stats={cardStats(player)}
+          size="sm"
+        />
+        <div style={{ flex: 1 }}>
+          <h3 style={{ fontSize: 19 }}>{player.name}</h3>
+          <div className="muted" style={{ fontSize: 13, marginTop: 3 }}>
+            #{player.number} · {ratingLabel(player.rating)}
           </div>
-          <div className="muted" style={{ fontSize: 13.5, marginTop: 2 }}>
-            {player.nationality.flag} {player.nationality.name} · {posLabel} · {player.club.name}
+          <div className="muted" style={{ fontSize: 13, marginTop: 6 }}>
+            {player.club.name}
           </div>
-        </div>
-        <div style={{ textAlign: "right" }}>
-          <div className="num statbig">{player.rating}</div>
-          <div className="statlabel">{ratingLabel(player.rating)}</div>
+          <div className="divider" style={{ margin: "10px 0" }} />
+          <div className="grid2">
+            <div>
+              <div className="statlabel">Age</div>
+              <div className="num" style={{ fontSize: 18 }}>
+                {player.age}
+              </div>
+            </div>
+            <div>
+              <div className="statlabel">Value</div>
+              <div className="num" style={{ fontSize: 18 }}>
+                {formatMoney(player.marketValue)}
+              </div>
+            </div>
+            <div>
+              <div className="statlabel">World rank</div>
+              <div className="num" style={{ fontSize: 18 }}>
+                {rank ? `#${rank}` : "—"}
+              </div>
+            </div>
+            <div>
+              <div className="statlabel">Fitness</div>
+              <div className="num" style={{ fontSize: 18 }}>
+                {Math.round(player.fitness)}%
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <div className="divider" />
-      <div className="grid3">
-        <div>
-          <div className="statlabel">AGE</div>
-          <div className="num" style={{ fontSize: 20 }}>
-            {player.age}
-          </div>
-        </div>
-        <div>
-          <div className="statlabel">VALUE</div>
-          <div className="num" style={{ fontSize: 20 }}>
-            {formatMoney(player.marketValue)}
-          </div>
-        </div>
-        <div>
-          <div className="statlabel">WORLD RANK</div>
-          <div className="num" style={{ fontSize: 20 }}>
-            {rank ? `#${rank}` : "—"}
-          </div>
-        </div>
-      </div>
-      <div style={{ marginTop: 10 }}>
-        <div className="row between">
-          <span className="statlabel">FITNESS</span>
-          <span className="statlabel">{Math.round(player.fitness)}%</span>
-        </div>
-        <div style={{ marginTop: 4 }}>
-          <Bar value={player.fitness} />
-        </div>
+      <div style={{ marginTop: 12 }}>
+        <Bar value={player.fitness} />
       </div>
     </div>
   );
@@ -314,16 +296,16 @@ export function DecisionOverlay({ evt, onChoose }: { evt: DecisionEventInstance;
     <div className="overlay">
       <div className="sheet fade-in">
         <div className="badge">
-          <Zap size={13} /> DECISION
+          <Zap size={13} /> Decision
         </div>
-        <h3 style={{ fontSize: 24, marginTop: 10 }}>{evt.title}</h3>
+        <h3 style={{ fontSize: 22, marginTop: 10 }}>{evt.title}</h3>
         <p className="muted" style={{ marginTop: 8 }}>
           {evt.text}
         </p>
         <div className="col gap12" style={{ marginTop: 18 }}>
           {evt.choices.map((c, i) => (
-            <button key={i} className="btn btn-block" style={{ justifyContent: "space-between" }} onClick={() => onChoose(i)}>
-              <span>{c.label}</span>
+            <button key={i} className="btn btn-block" style={{ flexDirection: "column", alignItems: "flex-start", gap: 3, padding: "14px 18px" }} onClick={() => onChoose(i)}>
+              <span style={{ fontSize: 15 }}>{c.label}</span>
               <span className="muted" style={{ fontSize: 12.5, fontWeight: 500 }}>
                 {c.hint}
               </span>
@@ -340,7 +322,7 @@ export function RecapCard({ records, retired, onContinue }: { records: CareerRec
   return (
     <div className="card fade-in">
       <div className="badge">
-        <TrendingUp size={13} /> {real.length > 1 ? "SEASONS RECAP" : "SEASON RECAP"}
+        <TrendingUp size={13} /> {real.length > 1 ? "Seasons recap" : "Season recap"}
       </div>
       <div className="col gap12" style={{ marginTop: 14 }}>
         {records.map((r, i) =>
@@ -355,7 +337,7 @@ export function RecapCard({ records, retired, onContinue }: { records: CareerRec
                   {r.year} · Age {r.age} · {r.club}
                 </span>
                 <span className="row gap8" style={{ fontSize: 13 }}>
-                  {r.rating > r.prevRating ? <TrendingUp size={14} color="#7fd07f" /> : r.rating < r.prevRating ? <TrendingDown size={14} color="#e07f7f" /> : null}
+                  {r.rating > r.prevRating ? <TrendingUp size={14} color="var(--accent)" /> : r.rating < r.prevRating ? <TrendingDown size={14} color="var(--danger)" /> : null}
                   <span className="num" style={{ fontSize: 17 }}>
                     {r.rating}
                   </span>
@@ -369,7 +351,7 @@ export function RecapCard({ records, retired, onContinue }: { records: CareerRec
               </div>
               {r.trophies.map((t, ti) => (
                 <div key={ti} className="row gap8" style={{ marginTop: 6, fontSize: 13.5 }}>
-                  <Trophy size={14} color="#d7a63e" /> {t.name}
+                  <Trophy size={14} color="var(--gold)" /> {t.name}
                 </div>
               ))}
               {r.lines.map((l, li) => (
@@ -399,34 +381,36 @@ export function Timeline({ seasons }: { seasons: PlayerState["seasons"] }) {
   return (
     <div className="card" style={{ marginTop: 16 }}>
       <div className="statlabel" style={{ marginBottom: 8 }}>
-        RECENT SEASONS
+        Recent seasons
       </div>
-      <table className="stat-table">
-        <thead>
-          <tr>
-            <th>Yr</th>
-            <th>Age</th>
-            <th>Club</th>
-            <th className="num">Ovr</th>
-            <th className="num">Apps</th>
-            <th className="num">G</th>
-            <th className="num">A</th>
-          </tr>
-        </thead>
-        <tbody>
-          {recent.map((s, i) => (
-            <tr key={i}>
-              <td>{s.year}</td>
-              <td>{s.age}</td>
-              <td>{s.club}</td>
-              <td className="num">{s.rating}</td>
-              <td className="num">{s.apps}</td>
-              <td className="num">{s.goals}</td>
-              <td className="num">{s.assists}</td>
+      <div style={{ overflowX: "auto" }}>
+        <table className="stat-table">
+          <thead>
+            <tr>
+              <th>Yr</th>
+              <th>Age</th>
+              <th>Club</th>
+              <th className="num">Ovr</th>
+              <th className="num">Apps</th>
+              <th className="num">G</th>
+              <th className="num">A</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {recent.map((s, i) => (
+              <tr key={i}>
+                <td>{s.year}</td>
+                <td>{s.age}</td>
+                <td>{s.club}</td>
+                <td className="num">{s.rating}</td>
+                <td className="num">{s.apps}</td>
+                <td className="num">{s.goals}</td>
+                <td className="num">{s.assists}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -459,21 +443,15 @@ export function RetiredScreen({
 
   return (
     <div className="wrap fade-in">
-      <div className="eyebrow">CAREER COMPLETE</div>
-      <div className="card" style={{ marginTop: 8, textAlign: "center", paddingTop: 26, paddingBottom: 26 }}>
-        <div className="badge" style={{ margin: "0 auto" }}>
+      <div className="eyebrow">Career complete</div>
+      <div className="card" style={{ marginTop: 8, display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 24, paddingBottom: 24, gap: 14 }}>
+        <div className="badge">
           <Medal size={13} /> {verdict}
         </div>
-        <h2 style={{ fontSize: 30, marginTop: 12 }}>{player.name}</h2>
-        <p className="muted">
-          {player.nationality.flag} {player.nationality.name} · {posLabel}
-        </p>
-        <div className="num" style={{ fontSize: 54, marginTop: 8 }}>
-          {player.peakRating}
-        </div>
-        <div className="statlabel">PEAK RATING · {player.peakYear}</div>
+        <PlayerCard rating={player.peakRating} position={player.position} name={player.name} flag={player.nationality.flag} clubName={player.club.name} stats={cardStats({ ...player, rating: player.peakRating })} />
+        <div className="statlabel">Peak rating · {player.peakYear}</div>
         {player.peakWorldRank && (
-          <div className="badge" style={{ marginTop: 10 }}>
+          <div className="badge">
             <Globe2 size={13} /> Peaked #{player.peakWorldRank} in the world
           </div>
         )}
@@ -482,34 +460,34 @@ export function RetiredScreen({
       <div className="grid3" style={{ marginTop: 14 }}>
         <div className="card" style={{ textAlign: "center" }}>
           <div className="num statbig">{player.apps}</div>
-          <div className="statlabel">APPEARANCES</div>
+          <div className="statlabel">Appearances</div>
         </div>
         <div className="card" style={{ textAlign: "center" }}>
           <div className="num statbig">{player.goals}</div>
-          <div className="statlabel">GOALS</div>
+          <div className="statlabel">Goals</div>
         </div>
         <div className="card" style={{ textAlign: "center" }}>
           <div className="num statbig">{player.assists}</div>
-          <div className="statlabel">ASSISTS</div>
+          <div className="statlabel">Assists</div>
         </div>
         <div className="card" style={{ textAlign: "center" }}>
           <div className="num statbig">{player.trophies.length}</div>
-          <div className="statlabel">TROPHIES</div>
+          <div className="statlabel">Trophies</div>
         </div>
         <div className="card" style={{ textAlign: "center" }}>
           <div className="num statbig">{player.caps}</div>
-          <div className="statlabel">CAPS</div>
+          <div className="statlabel">Caps</div>
         </div>
         <div className="card" style={{ textAlign: "center" }}>
           <div className="num statbig">{player.seasons.length}</div>
-          <div className="statlabel">SEASONS</div>
+          <div className="statlabel">Seasons</div>
         </div>
       </div>
 
       {player.seasons.length > 1 && (
         <div className="card" style={{ marginTop: 14 }}>
           <div className="statlabel" style={{ marginBottom: 6 }}>
-            RATING OVER TIME
+            Rating over time
           </div>
           <RatingChart seasons={player.seasons} />
         </div>
@@ -518,12 +496,12 @@ export function RetiredScreen({
       {player.trophies.length > 0 && (
         <div className="card" style={{ marginTop: 14 }}>
           <div className="statlabel" style={{ marginBottom: 8 }}>
-            HONOURS CABINET
+            Honours cabinet
           </div>
           <div className="col gap8">
             {player.trophies.map((t, i) => (
               <div key={i} className="row gap8" style={{ fontSize: 14 }}>
-                <Trophy size={15} color="#d7a63e" /> {t.name} — {t.year}
+                <Trophy size={15} color="var(--gold)" /> {t.name} — {t.year}
               </div>
             ))}
           </div>
@@ -532,14 +510,14 @@ export function RetiredScreen({
 
       <div className="card" style={{ marginTop: 14 }}>
         <div className="row between">
-          <div className="statlabel">CAREER SCORE</div>
+          <div className="statlabel">Career score</div>
           <div className="num" style={{ fontSize: 20 }}>
             {score}
           </div>
         </div>
         <div className="divider" />
         <div className="badge">
-          <Globe2 size={13} /> ALL-TIME RANKING
+          <Globe2 size={13} /> All-time ranking
         </div>
         {leaderboard.rank ? (
           <p style={{ marginTop: 10, fontSize: 15 }}>

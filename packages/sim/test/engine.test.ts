@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createRng } from "../src/rng.js";
-import { COUNTRIES, makeClub } from "../src/data.js";
+import { CLUBS, COUNTRIES } from "../src/data.js";
 import { continueBatch, newPlayer, resolveDecision } from "../src/engine.js";
 import { rollDraft } from "../src/formulas.js";
 import type { CareerRecord, PlayerState } from "../src/types.js";
@@ -8,7 +8,7 @@ import type { CareerRecord, PlayerState } from "../src/types.js";
 function makeStartingPlayer(seed: number): PlayerState {
   const rng = createRng(seed);
   const draft = rollDraft(rng);
-  const club = makeClub("europe", 4, rng);
+  const club = rng.choice(CLUBS.filter((c) => c.tier === 4));
   return newPlayer({ name: "Sim Player", nationality: COUNTRIES[0], foot: "Right", number: 9, position: "ST", club }, draft, 2024);
 }
 

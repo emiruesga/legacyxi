@@ -1,4 +1,4 @@
-import { REGION_PARTS, TIER_LABEL, makeClub } from "./data.js";
+import { TIER_LABEL, WORLD_CUP_NAME, pickClubsByTier } from "./data.js";
 import { clamp, ratingToTier } from "./formulas.js";
 import type { RNG } from "./rng.js";
 import type { AutoEventDef, DecisionEventDef, PlayerState } from "./types.js";
@@ -11,12 +11,8 @@ export const DECISION_EVENTS: DecisionEventDef[] = [
     weight: 3,
     isEligible: (p) => p.age >= 17 && p.seasonsAtClub >= 1 && p.age < 34 && !p.retired,
     build: (p, rng) => {
-      const targetTier = clamp(ratingToTier(p.rating) + rng.choice([-1, 0, 0, 1]), 1, 5) as 1 | 2 | 3 | 4 | 5;
-      const region = rng.choice(Object.keys(REGION_PARTS)) as keyof typeof REGION_PARTS;
-      const offerA = makeClub(region, targetTier, rng);
-      const region2 = rng.choice(Object.keys(REGION_PARTS)) as keyof typeof REGION_PARTS;
-      const offerBTier = clamp(targetTier + rng.choice([-1, 0, 1]), 1, 5) as 1 | 2 | 3 | 4 | 5;
-      const offerB = makeClub(region2, offerBTier, rng);
+      const targetTier = clamp(ratingToTier(p.rating) + rng.choice([-1, 0, 0, 1]), 1, 5);
+      const [offerA, offerB] = pickClubsByTier(targetTier, rng, 2, p.club.name);
       return {
         title: "Transfer window",
         text: `Interest is building. Do you stay loyal to ${p.club.name}, or explore a move?`,
@@ -156,8 +152,8 @@ export const AUTO_EVENTS: AutoEventDef[] = [
     isEligible: (p) => p.caps >= 1 && (p.year - p.careerStartYear) % 4 === 2,
     apply: (p, rng) => {
       const won = rng.next() < 0.1;
-      const trophies = won ? [...p.trophies, { name: "Global Cup", year: p.year, tier: p.club.tier, level: "international" as const }] : p.trophies;
-      return { ...p, trophies, note: won ? "Called up for the Global Cup — and lifted the trophy with the national team!" : "Called up to represent your country at the Global Cup." };
+      const trophies = won ? [...p.trophies, { name: WORLD_CUP_NAME, year: p.year, tier: p.club.tier, level: "international" as const }] : p.trophies;
+      return { ...p, trophies, note: won ? `Called up for the ${WORLD_CUP_NAME} — and lifted the trophy with the national team!` : `Called up to represent your country at the ${WORLD_CUP_NAME}.` };
     },
   },
   {

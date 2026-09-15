@@ -1,6 +1,6 @@
-import { CLUB_LEVEL, LEVEL_BASE, MILESTONE_TIERS, POS_PROFILE, TIER_MULT, WORLD_POOL_SIZE } from "./data.js";
+import { CLUB_LEVEL, LEVEL_BASE, MILESTONE_TIERS, POS_PROFILE, TIER_MULT, WORLD_POOL_SIZE, leagueById } from "./data.js";
 import type { RNG } from "./rng.js";
-import type { PlayerState, PositionId } from "./types.js";
+import type { CardStats, PlayerState, PositionId } from "./types.js";
 
 export function clamp(v: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, v));
@@ -74,10 +74,11 @@ export function rollTrophies(p: PlayerState, rng: RNG) {
   const captainMult = p.isCaptain ? 1.15 : 1;
   const storybook = p.flags.storybook ? 1.6 : 1;
   const prob = base * (p.club.ambition / 70) * composure * captainMult * storybook;
+  const league = leagueById(p.club.leagueId);
   const won: PlayerState["trophies"] = [];
-  if (rng.next() < prob) won.push({ name: "Domestic League Title", year: p.year, tier: p.club.tier, level: "league" });
-  if (rng.next() < prob * 0.7) won.push({ name: "Domestic Cup", year: p.year, tier: p.club.tier, level: "cup" });
-  if (p.club.tier <= 2 && rng.next() < prob * 0.5) won.push({ name: "Continental Cup", year: p.year, tier: p.club.tier, level: "continental" });
+  if (rng.next() < prob) won.push({ name: `${league.name} title`, year: p.year, tier: p.club.tier, level: "league" });
+  if (rng.next() < prob * 0.7) won.push({ name: league.cupName, year: p.year, tier: p.club.tier, level: "cup" });
+  if (p.club.tier <= 2 && rng.next() < prob * 0.5) won.push({ name: league.continentalName, year: p.year, tier: p.club.tier, level: "continental" });
   return won;
 }
 
@@ -155,10 +156,51 @@ export function verdictFor(p: PlayerState, score: number): string {
   return "Gave It Everything";
 }
 
+/** Ceiling roll is deliberately top-heavy rare: a true 99 (a GOAT-tier
+ * peak) needs both a ~0.5% "ultra-generational" roll AND the ageing
+ * curve to actually land on it in a player's peak years — the intent is
+ * that 99 reads as a real event, the way it does for the handful of
+ * real players who've ever carried it, not a routine ceiling. */
 export function rollDraft(rng: RNG) {
-  const base = rng.int(46, 58);
-  const potential = clamp(base + rng.int(18, 38), base + 10, 99);
-  const potentialLabel =
-    potential >= 90 ? "Generational Talent" : potential >= 82 ? "Star Potential" : potential >= 72 ? "Bright Prospect" : "Late Bloomer Chance";
+  const base = rng.int(44, 56);
+  const roll = rng.next();
+  let ceiling: number;
+  let potentialLabel: string;
+  if (roll > 0.995) {
+    ceiling = 99;
+    potentialLabel = "Generational Talent";
+  } else if (roll > 0.97) {
+    ceiling = rng.int(94, 98);
+    potentialLabel = "Generational Talent";
+  } else if (roll > 0.85) {
+    ceiling = rng.int(87, 93);
+    potentialLabel = "Star Potential";
+  } else if (roll > 0.55) {
+    ceiling = rng.int(78, 86);
+    potentialLabel = "Bright Prospect";
+  } else {
+    ceiling = rng.int(base + 8, 77);
+    potentialLabel = "Late Bloomer Chance";
+  }
+  const potential = clamp(ceiling, base + 4, 99);
   return { base, potential, potentialLabel };
+}
+
+const CARD_STAT_OFFSET: Record<PositionId, CardStats> = {
+  GK: { pac: -18, sho: -30, pas: -8, dri: -20, def: 10, phy: 6 },
+  CB: { pac: -6, sho: -20, pas: -8, dri: -14, def: 12, phy: 8 },
+  FB: { pac: 8, sho: -14, pas: 2, dri: 2, def: 8, phy: 2 },
+  DM: { pac: -4, sho: -10, pas: 6, dri: -2, def: 8, phy: 6 },
+  CM: { pac: 0, sho: -4, pas: 10, dri: 4, def: 0, phy: 2 },
+  AM: { pac: 4, sho: 6, pas: 10, dri: 10, def: -10, phy: -4 },
+  W: { pac: 12, sho: 4, pas: 4, dri: 10, def: -14, phy: -6 },
+  ST: { pac: 8, sho: 14, pas: -2, dri: 6, def: -18, phy: 4 },
+};
+
+/** FIFA-card-style flavor attributes derived purely from overall rating +
+ * position — decoration for the UI, never read by the simulation. */
+export function cardStats(p: PlayerState): CardStats {
+  const w = CARD_STAT_OFFSET[p.position];
+  const stat = (delta: number) => clamp(Math.round(p.rating + delta), 30, 99);
+  return { pac: stat(w.pac), sho: stat(w.sho), pas: stat(w.pas), dri: stat(w.dri), def: stat(w.def), phy: stat(w.phy) };
 }

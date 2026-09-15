@@ -8,15 +8,15 @@ import {
   milestoneLabel,
   nextMilestoneTier,
   ratingToTier,
+  rollDraft,
   verdictFor,
 } from "../src/formulas.js";
-import { COUNTRIES, POSITIONS, makeClub } from "../src/data.js";
+import { CLUBS, COUNTRIES, POSITIONS } from "../src/data.js";
 import { newPlayer } from "../src/engine.js";
 import type { PlayerState } from "../src/types.js";
 
 function basePlayer(overrides: Partial<PlayerState> = {}): PlayerState {
-  const rng = createRng(1);
-  const club = makeClub("europe", 3, rng);
+  const club = CLUBS.find((c) => c.tier === 3) ?? CLUBS[0];
   const p = newPlayer(
     { name: "Test", nationality: COUNTRIES[0], foot: "Right", number: 10, position: "ST", club },
     { base: 60, potential: 80, potentialLabel: "Star Potential" },
@@ -154,5 +154,31 @@ describe("careerScore / verdictFor", () => {
   it("labels a heavily decorated, one-club career as a legend tier", () => {
     const legend = basePlayer({ loyaltyStreakMax: 15, peakRating: 92, awards: [{ name: "Golden Ball nomination", year: 2030 }] });
     expect(["One-Club Legend", "Global Icon"]).toContain(verdictFor(legend, careerScore(legend)));
+  });
+});
+
+describe("rollDraft rarity — 99 should read as a GOAT-tier outlier", () => {
+  it("gives a true 99 potential ceiling to well under 5% of prospects", () => {
+    let hit99 = 0;
+    let hit97plus = 0;
+    const trials = 5000;
+    for (let seed = 1; seed <= trials; seed++) {
+      const rng = createRng(seed * 7919);
+      const draft = rollDraft(rng);
+      if (draft.potential >= 99) hit99++;
+      if (draft.potential >= 97) hit97plus++;
+    }
+    expect(hit99 / trials).toBeLessThan(0.02);
+    expect(hit97plus / trials).toBeLessThan(0.03);
+  });
+
+  it("gives the median prospect a modest ceiling, not a superstar one", () => {
+    const ceilings: number[] = [];
+    for (let seed = 1; seed <= 2000; seed++) {
+      ceilings.push(rollDraft(createRng(seed * 104729)).potential);
+    }
+    ceilings.sort((a, b) => a - b);
+    const median = ceilings[Math.floor(ceilings.length / 2)];
+    expect(median).toBeLessThan(85);
   });
 });
