@@ -30,10 +30,11 @@ export function formatMoney(v: number): string {
 }
 
 /** Rating delta for a single season, before event modifiers. Growth toward potential
- * while young, mild variance in prime years, accelerating decline after 30. */
+ * while young, still closing the gap (more gently) through the prime years so a high
+ * ceiling is actually reachable before decline sets in, then accelerating decline after 30. */
 export function ageGrowth(p: PlayerState, rng: RNG): number {
-  if (p.age < 27) return (p.potential - p.rating) * 0.22 + rng.range(-1, 2.6);
-  if (p.age <= 30) return rng.range(-1, 1.5);
+  if (p.age < 27) return (p.potential - p.rating) * 0.24 + rng.range(-1, 2.6);
+  if (p.age <= 30) return (p.potential - p.rating) * 0.16 + rng.range(-1, 1.6);
   const yearsPast = p.age - 30;
   let d = -(rng.range(0.5, 2.4) + yearsPast * 0.4);
   if (p.age >= 35) d -= rng.range(0.5, 2);
@@ -156,30 +157,29 @@ export function verdictFor(p: PlayerState, score: number): string {
   return "Gave It Everything";
 }
 
-/** Ceiling roll is deliberately top-heavy rare: a true 99 (a GOAT-tier
- * peak) needs both a ~0.5% "ultra-generational" roll AND the ageing
- * curve to actually land on it in a player's peak years — the intent is
- * that 99 reads as a real event, the way it does for the handful of
- * real players who've ever carried it, not a routine ceiling. */
+/** Ceiling roll is top-heavy rare: a true 99 (a GOAT-tier peak) needs a
+ * ~2% "generational" roll, so it stays a genuine event rather than a
+ * routine ceiling — but common enough that a handful of careers will
+ * actually get there, not so rare it never happens in practice. */
 export function rollDraft(rng: RNG) {
   const base = rng.int(44, 56);
   const roll = rng.next();
   let ceiling: number;
   let potentialLabel: string;
-  if (roll > 0.995) {
+  if (roll > 0.98) {
     ceiling = 99;
     potentialLabel = "Generational Talent";
-  } else if (roll > 0.97) {
-    ceiling = rng.int(94, 98);
+  } else if (roll > 0.9) {
+    ceiling = rng.int(95, 98);
     potentialLabel = "Generational Talent";
-  } else if (roll > 0.85) {
-    ceiling = rng.int(87, 93);
+  } else if (roll > 0.68) {
+    ceiling = rng.int(88, 94);
     potentialLabel = "Star Potential";
-  } else if (roll > 0.55) {
-    ceiling = rng.int(78, 86);
+  } else if (roll > 0.35) {
+    ceiling = rng.int(80, 87);
     potentialLabel = "Bright Prospect";
   } else {
-    ceiling = rng.int(base + 8, 77);
+    ceiling = rng.int(base + 8, 79);
     potentialLabel = "Late Bloomer Chance";
   }
   const potential = clamp(ceiling, base + 4, 99);

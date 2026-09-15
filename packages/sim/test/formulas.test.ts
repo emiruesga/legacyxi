@@ -44,14 +44,24 @@ describe("ageGrowth", () => {
     expect(avg).toBeLessThan(0);
   });
 
-  it("is mild in the 27-30 prime window", () => {
+  it("is mild in the 27-30 prime window when already at potential", () => {
     const rng = createRng(3);
     const p = basePlayer({ age: 28, rating: 85, potential: 85 });
     const deltas = Array.from({ length: 200 }, () => ageGrowth(p, rng));
     for (const d of deltas) {
       expect(d).toBeGreaterThanOrEqual(-1);
-      expect(d).toBeLessThanOrEqual(1.5);
+      expect(d).toBeLessThanOrEqual(1.6);
     }
+  });
+
+  it("still pulls toward potential during the prime window when a gap remains", () => {
+    const rng = createRng(9);
+    const p = basePlayer({ age: 28, rating: 70, potential: 99 });
+    const deltas = Array.from({ length: 200 }, () => ageGrowth(p, rng));
+    const avg = deltas.reduce((s, d) => s + d, 0) / deltas.length;
+    // A real gap should produce meaningfully positive average growth, not
+    // just noise — this is what makes a high potential reachable at all.
+    expect(avg).toBeGreaterThan(1.5);
   });
 });
 
@@ -157,8 +167,8 @@ describe("careerScore / verdictFor", () => {
   });
 });
 
-describe("rollDraft rarity — 99 should read as a GOAT-tier outlier", () => {
-  it("gives a true 99 potential ceiling to well under 5% of prospects", () => {
+describe("rollDraft rarity — 99 should read as a GOAT-tier outlier, not an impossibility", () => {
+  it("gives a true 99 potential ceiling to a rare but real slice of prospects", () => {
     let hit99 = 0;
     let hit97plus = 0;
     const trials = 5000;
@@ -168,8 +178,11 @@ describe("rollDraft rarity — 99 should read as a GOAT-tier outlier", () => {
       if (draft.potential >= 99) hit99++;
       if (draft.potential >= 97) hit97plus++;
     }
-    expect(hit99 / trials).toBeLessThan(0.02);
-    expect(hit97plus / trials).toBeLessThan(0.03);
+    // Rare — this is still a GOAT-tier ceiling — but should actually
+    // happen across a modest number of playthroughs, not next to never.
+    expect(hit99 / trials).toBeGreaterThan(0.005);
+    expect(hit99 / trials).toBeLessThan(0.05);
+    expect(hit97plus / trials).toBeLessThan(0.1);
   });
 
   it("gives the median prospect a modest ceiling, not a superstar one", () => {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createRng } from "../src/rng.js";
 import { CLUBS, COUNTRIES } from "../src/data.js";
-import { continueBatch, newPlayer, resolveDecision } from "../src/engine.js";
+import { continueBatch, newPlayer, resolveDecision, simulateSeason } from "../src/engine.js";
 import { rollDraft } from "../src/formulas.js";
 import type { CareerRecord, PlayerState } from "../src/types.js";
 
@@ -81,6 +81,20 @@ describe("full career loop", () => {
     for (const s of player.seasons) {
       expect(s.rating).toBeGreaterThanOrEqual(40);
       expect(s.rating).toBeLessThanOrEqual(99);
+    }
+  });
+});
+
+describe("rating convergence — a maxed-potential player should actually reach their ceiling", () => {
+  it("gets within a few points of a 99 potential by the end of the prime years, across seeds", () => {
+    for (const seed of [1, 2, 3, 4, 5, 6, 7, 8]) {
+      const rng = createRng(seed * 31337);
+      let player = makeStartingPlayer(seed);
+      player = { ...player, potential: 99, rating: 50 };
+      while (player.age < 30 && !player.retired) {
+        player = simulateSeason(player, rng).player;
+      }
+      expect(player.rating).toBeGreaterThanOrEqual(90);
     }
   });
 });
