@@ -59,13 +59,22 @@ app.post("/api/careers", async (req, res) => {
     },
   });
 
-  const [total, rankAbove, top] = await Promise.all([
+  const [total, rankAbove, top, nationalTotal, nationalRankAbove] = await Promise.all([
     prisma.careerEntry.count(),
     prisma.careerEntry.count({ where: { score: { gt: created.score } } }),
     prisma.careerEntry.findMany({ orderBy: { score: "desc" }, take: TOP_N }),
+    prisma.careerEntry.count({ where: { flag: created.flag } }),
+    prisma.careerEntry.count({ where: { flag: created.flag, score: { gt: created.score } } }),
   ]);
 
-  res.json({ rank: rankAbove + 1, total, top, entry: created });
+  res.json({
+    rank: rankAbove + 1,
+    total,
+    top,
+    nationalRank: nationalRankAbove + 1,
+    nationalTotal,
+    entry: created,
+  });
 });
 
 /** Read-only view of the shared all-time leaderboard. */

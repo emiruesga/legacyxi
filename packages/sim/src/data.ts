@@ -1,4 +1,4 @@
-import type { Club, Confederation, Country, CrestColors, League, PositionDef, PositionId, PositionProfile } from "./types.js";
+import type { Club, Confederation, Country, CrestColors, League, PositionDef, PositionId, PositionProfile, Region } from "./types.js";
 import type { RNG } from "./rng.js";
 
 export const COUNTRIES: Country[] = [
@@ -79,6 +79,25 @@ const CONTINENTAL_NAME: Record<Confederation, string> = {
   CONCACAF: "CONCACAF Champions Cup",
   CAF: "CAF Champions League",
   AFC: "AFC Champions League Elite",
+};
+
+/** A nation's confederation follows its region — this drives which
+ * international tournament (besides the World Cup) its national team plays in. */
+export const REGION_CONFEDERATION: Record<Region, Confederation> = {
+  europe: "UEFA",
+  latam: "CONMEBOL",
+  africa: "CAF",
+  asia: "AFC",
+  northam: "CONCACAF",
+};
+
+/** Real international tournament names, one per confederation. */
+export const CONTINENTAL_INTL_CUP: Record<Confederation, string> = {
+  UEFA: "European Championship",
+  CONMEBOL: "Copa América",
+  CAF: "Africa Cup of Nations",
+  AFC: "AFC Asian Cup",
+  CONCACAF: "Gold Cup",
 };
 
 function league(id: string, name: string, country: string, tier: 1 | 2 | 3 | 4 | 5, confederation: Confederation, cupName: string): League {

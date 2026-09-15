@@ -115,6 +115,20 @@ export function computeWorldRank(rating: number, position: PositionId, rng?: RNG
   return r;
 }
 
+/** Estimated share of a position's global talent pool that a given
+ * footballing nation produces — bigger footballing nations (tier 1) run
+ * deeper at every position, so an equally elite global rank translates
+ * to *tougher* domestic competition, not easier. */
+const COUNTRY_TALENT_SHARE: Record<number, number> = { 1: 0.06, 2: 0.03, 3: 0.014, 4: 0.006, 5: 0.0025 };
+
+/** Estimated rank among a player's own compatriots at their position, from
+ * their (position-scoped) world rank — same logic the world-rank milestone
+ * system already uses, just narrowed to one nation's slice of the pool. */
+export function computeNationalRank(worldRank: number, countryTier: number): number {
+  const share = COUNTRY_TALENT_SHARE[countryTier] ?? COUNTRY_TALENT_SHARE[5];
+  return Math.max(1, Math.round(worldRank * share));
+}
+
 export function milestoneLabel(rank: number): string {
   if (rank <= 1) return "Ranked #1 in the world";
   if (rank <= 5) return "Top 5 in the world";

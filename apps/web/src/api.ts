@@ -1,6 +1,7 @@
 const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8787";
 const CAREERS_PATH = "careers";
 const LEADERBOARD_SCAN_LIMIT = 500;
+const NATIONAL_SCAN_LIMIT = 1000;
 
 export interface LeaderboardRow {
   id: string;
@@ -29,15 +30,21 @@ export interface SubmitResult {
   rank: number;
   total: number;
   top: LeaderboardRow[];
+  /** Rank among every recorded career sharing this player's flag/nationality. */
+  nationalRank: number;
+  nationalTotal: number;
 }
 
 /** Minimal shape of the `db` capability namespace this file uses.
  * See the artifact-capabilities runtime contract for the full surface. */
+interface ClaudeDbQuery {
+  where(field: string, op: string, value: unknown): ClaudeDbQuery;
+  orderBy(field: string, dir?: "asc" | "desc"): ClaudeDbQuery;
+  limit(n: number): ClaudeDbQuery;
+  get(): Promise<{ docs: { id: string; data(): Record<string, unknown> }[] }>;
+}
 interface ClaudeDb {
-  collection(path: string): {
-    add(data: Record<string, unknown>): Promise<{ id: string }>;
-    orderBy(field: string, dir?: "asc" | "desc"): any;
-  };
+  collection(path: string): ClaudeDbQuery & { add(data: Record<string, unknown>): Promise<{ id: string }> };
 }
 
 declare global {
@@ -62,16 +69,31 @@ function getDb(): Promise<ClaudeDb | null> {
   return dbPromise;
 }
 
+function toRow(d: { id: string; data(): Record<string, unknown> }): LeaderboardRow {
+  return { id: d.id, ...(d.data() as object) } as LeaderboardRow;
+}
+
 export async function submitCareer(entry: CareerSubmission): Promise<SubmitResult | null> {
   const db = await getDb();
   if (db) {
     try {
       const collection = db.collection(CAREERS_PATH);
       const ref = await collection.add({ ...entry, createdAt: Date.now() });
-      const snap = await collection.orderBy("score", "desc").limit(LEADERBOARD_SCAN_LIMIT).get();
-      const docs: LeaderboardRow[] = snap.docs.map((d: any) => ({ id: d.id, ...(d.data() as object) }) as LeaderboardRow);
+      const [globalSnap, nationalSnap] = await Promise.all([
+        collection.orderBy("score", "desc").limit(LEADERBOARD_SCAN_LIMIT).get(),
+        collection.where("flag", "==", entry.flag).orderBy("score", "desc").limit(NATIONAL_SCAN_LIMIT).get(),
+      ]);
+      const docs = globalSnap.docs.map(toRow);
+      const nationalDocs = nationalSnap.docs.map(toRow);
       const rankIdx = docs.findIndex((d) => d.id === ref.id);
-      return { rank: rankIdx >= 0 ? rankIdx + 1 : docs.length, total: docs.length, top: docs.slice(0, 50) };
+      const nationalIdx = nationalDocs.findIndex((d) => d.id === ref.id);
+      return {
+        rank: rankIdx >= 0 ? rankIdx + 1 : docs.length,
+        total: docs.length,
+        top: docs.slice(0, 50),
+        nationalRank: nationalIdx >= 0 ? nationalIdx + 1 : nationalDocs.length,
+        nationalTotal: nationalDocs.length,
+      };
     } catch {
       return null;
     }
@@ -95,7 +117,7 @@ export async function fetchLeaderboard(limit = 50): Promise<{ total: number; top
   if (db) {
     try {
       const snap = await db.collection(CAREERS_PATH).orderBy("score", "desc").limit(LEADERBOARD_SCAN_LIMIT).get();
-      const docs: LeaderboardRow[] = snap.docs.map((d: any) => ({ id: d.id, ...(d.data() as object) }) as LeaderboardRow);
+      const docs = snap.docs.map(toRow);
       return { total: docs.length, top: docs.slice(0, limit) };
     } catch {
       return null;

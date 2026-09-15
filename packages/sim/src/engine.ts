@@ -158,6 +158,7 @@ export function simulateSeason(playerIn: PlayerState, rng: RNG): { player: Playe
     prevRating,
     trophies: trophiesWon,
     capGained: capResult.gained,
+    capDebut: capResult.first,
     worldRank,
     milestoneText,
     lines,

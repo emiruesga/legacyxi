@@ -20,9 +20,9 @@ import type {
   PlayerState,
   PositionId,
 } from "@legacyxi/sim";
-import { LEAGUES, POSITIONS, TIER_LABEL, cardStats, computeWorldRank, formatMoney, ratingLabel } from "@legacyxi/sim";
+import { LEAGUES, POSITIONS, TIER_LABEL, cardStats, computeNationalRank, computeWorldRank, formatMoney, ratingLabel } from "@legacyxi/sim";
 import type { LeaderboardRow } from "./api.js";
-import { BallIcon, Crest, PitchMarkings, PlayerCard, PositionPicker } from "./cards.js";
+import { BallIcon, Crest, NationLegacy, PitchMarkings, PlayerCard, PositionPicker, PotentialGauge } from "./cards.js";
 
 export function Bar({ value, max = 100 }: { value: number; max?: number }) {
   const pct = Math.max(0, Math.min(100, (value / max) * 100));
@@ -295,6 +295,8 @@ export function PlayerHeader({ player }: { player: PlayerState }) {
       <div style={{ marginTop: 12 }}>
         <Bar value={player.fitness} />
       </div>
+      <div className="divider" />
+      <PotentialGauge current={player.rating} potential={player.potential} />
     </div>
   );
 }
@@ -427,6 +429,8 @@ export interface LeaderboardView {
   rank: number | null;
   total: number;
   board: (LeaderboardRow & { isYou?: boolean })[];
+  nationalRank: number | null;
+  nationalTotal: number;
 }
 
 export function RetiredScreen({
@@ -463,6 +467,13 @@ export function RetiredScreen({
             <Globe2 size={13} /> Peaked #{player.peakWorldRank} in the world
           </div>
         )}
+      </div>
+
+      <div className="card" style={{ marginTop: 14 }}>
+        <div className="statlabel" style={{ marginBottom: 2 }}>
+          Scouted ceiling
+        </div>
+        <PotentialGauge current={player.peakRating} potential={player.potential} currentLabel="Peak" />
       </div>
 
       <div className="grid3" style={{ marginTop: 14 }}>
@@ -550,6 +561,21 @@ export function RetiredScreen({
             </div>
           ))}
         </div>
+      </div>
+
+      <div style={{ marginTop: 14 }}>
+        <NationLegacy
+          flag={player.nationality.flag}
+          countryName={player.nationality.name}
+          rows={[
+            ...(leaderboard.nationalRank
+              ? [{ label: `Best-ever ${player.nationality.name} career recorded`, rank: leaderboard.nationalRank, total: leaderboard.nationalTotal }]
+              : []),
+            ...(player.peakWorldRank
+              ? [{ label: `Best ${posLabel.toLowerCase()} from ${player.nationality.name} at your peak`, rank: computeNationalRank(player.peakWorldRank, player.nationality.tier) }]
+              : []),
+          ]}
+        />
       </div>
 
       <div className="row gap12" style={{ marginTop: 18 }}>

@@ -543,7 +543,7 @@ table.stat-table th.num {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle, rgba(228, 193, 88, 0.35), transparent 70%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--moment-glow, #e4c158) 35%, transparent), transparent 70%);
   animation: trophyGlowPulse 1.8s ease-in-out infinite;
 }
 .trophy-icon-pop {
@@ -678,4 +678,68 @@ table.stat-table th.num {
     animation: none !important;
     opacity: 1;
   }
+}
+
+/* ---------- potential gauge ---------- */
+.pot-gauge {
+  position: relative;
+  height: 10px;
+  border-radius: 6px;
+  background: rgba(241, 245, 240, 0.1);
+  margin: 26px 4px 6px;
+}
+.pot-gauge-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--bronze), var(--accent));
+}
+.pot-gauge-marker {
+  position: absolute;
+  top: -22px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.pot-gauge-marker .pin {
+  width: 2px;
+  height: 16px;
+  background: currentColor;
+  margin-top: 2px;
+}
+.pot-gauge-marker.now {
+  color: var(--ink);
+}
+.pot-gauge-marker.ceiling {
+  color: var(--gold);
+  top: -22px;
+}
+.pot-gauge-tag {
+  font-family: "Barlow Condensed", sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+}
+
+/* ---------- nation legacy ---------- */
+.legacy-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+}
+.legacy-row + .legacy-row {
+  border-top: 1px solid var(--line);
+}
+.legacy-flag {
+  font-size: 26px;
+  line-height: 1;
+}
+.legacy-rank {
+  font-family: "Barlow Condensed", sans-serif;
+  font-weight: 800;
+  font-size: 22px;
+  color: var(--gold);
+  white-space: nowrap;
 }

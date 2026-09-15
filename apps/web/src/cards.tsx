@@ -1,4 +1,5 @@
-import { Trophy } from "lucide-react";
+import type { ReactNode, CSSProperties } from "react";
+import { ShieldCheck, Trophy } from "lucide-react";
 import type { CardStats, CrestColors, PositionId } from "@legacyxi/sim";
 import { POSITIONS, crestFor } from "@legacyxi/sim";
 
@@ -123,9 +124,26 @@ export function PlayerCard({
 
 const CONFETTI_COLORS = ["#e4c158", "#5cff9e", "#c9cdd3", "#e2554b", "#f6dd8c"];
 
-/** A one-time celebratory moment for winning a trophy — not just a line in
- * the recap. Tap anywhere to continue. */
-export function TrophyCelebration({ trophyName, year, onContinue }: { trophyName: string; year: number; onContinue: () => void }) {
+/** A one-time full-screen celebratory moment — a trophy win or an
+ * international debut — instead of just another line in the recap.
+ * Tap anywhere to continue. */
+export function MomentCelebration({
+  icon,
+  glowColor = "#e4c158",
+  eyebrow,
+  title,
+  hint,
+  confetti: showConfetti = true,
+  onContinue,
+}: {
+  icon: ReactNode;
+  glowColor?: string;
+  eyebrow: string;
+  title: string;
+  hint: string;
+  confetti?: boolean;
+  onContinue: () => void;
+}) {
   const confetti = Array.from({ length: 18 }, (_, i) => ({
     left: (i * 53) % 100,
     delay: (i * 137) % 22 / 10,
@@ -135,30 +153,61 @@ export function TrophyCelebration({ trophyName, year, onContinue }: { trophyName
   }));
   return (
     <div className="trophy-overlay" onClick={onContinue} role="button" tabIndex={0}>
-      <div className="confetti" aria-hidden="true">
-        {confetti.map((c, i) => (
-          <span
-            key={i}
-            className="confetti-piece"
-            style={{
-              left: `${c.left}%`,
-              background: c.color,
-              animationDelay: `${c.delay}s`,
-              animationDuration: `${c.duration}s`,
-              transform: `rotate(${c.rotate}deg)`,
-            }}
-          />
-        ))}
-      </div>
-      <div className="trophy-panel">
-        <div className="trophy-glow">
-          <Trophy size={52} color="#e4c158" className="trophy-icon-pop" />
+      {showConfetti && (
+        <div className="confetti" aria-hidden="true">
+          {confetti.map((c, i) => (
+            <span
+              key={i}
+              className="confetti-piece"
+              style={{
+                left: `${c.left}%`,
+                background: c.color,
+                animationDelay: `${c.delay}s`,
+                animationDuration: `${c.duration}s`,
+                transform: `rotate(${c.rotate}deg)`,
+              }}
+            />
+          ))}
         </div>
-        <div className="trophy-eyebrow">Trophy won</div>
-        <h2 className="trophy-title">{trophyName}</h2>
-        <div className="trophy-hint">{year} · tap to continue</div>
+      )}
+      <div className="trophy-panel">
+        <div className="trophy-glow" style={{ "--moment-glow": glowColor } as CSSProperties}>
+          {icon}
+        </div>
+        <div className="trophy-eyebrow" style={{ color: glowColor }}>
+          {eyebrow}
+        </div>
+        <h2 className="trophy-title">{title}</h2>
+        <div className="trophy-hint">{hint}</div>
       </div>
     </div>
+  );
+}
+
+export function TrophyCelebration({ trophyName, year, onContinue }: { trophyName: string; year: number; onContinue: () => void }) {
+  return (
+    <MomentCelebration
+      icon={<Trophy size={52} color="#e4c158" className="trophy-icon-pop" />}
+      glowColor="#e4c158"
+      eyebrow="Trophy won"
+      title={trophyName}
+      hint={`${year} · tap to continue`}
+      onContinue={onContinue}
+    />
+  );
+}
+
+export function DebutCelebration({ countryName, onContinue }: { countryName: string; onContinue: () => void }) {
+  return (
+    <MomentCelebration
+      icon={<ShieldCheck size={52} color="#5cff9e" className="trophy-icon-pop" />}
+      glowColor="#5cff9e"
+      eyebrow="International debut"
+      title={`Full debut for ${countryName}`}
+      hint="tap to continue"
+      confetti={false}
+      onContinue={onContinue}
+    />
   );
 }
 
@@ -176,6 +225,78 @@ export function PitchMarkings() {
         <rect x="344" y="70" width="46" height="120" />
       </g>
     </svg>
+  );
+}
+
+const GAUGE_MIN = 40;
+const GAUGE_MAX = 99;
+
+function gaugePct(value: number): number {
+  return ((value - GAUGE_MIN) / (GAUGE_MAX - GAUGE_MIN)) * 100;
+}
+
+/** FIFA-style "growth" gauge: where a player sits now (or their peak)
+ * against their scouted potential ceiling. */
+export function PotentialGauge({ current, potential, currentLabel = "Now" }: { current: number; potential: number; currentLabel?: string }) {
+  const reachedCeiling = current >= potential;
+  return (
+    <div>
+      <div className="row between" style={{ fontSize: 12 }}>
+        <span className="statlabel" style={{ marginTop: 0 }}>
+          {currentLabel}
+        </span>
+        <span className="statlabel" style={{ marginTop: 0 }}>
+          Potential
+        </span>
+      </div>
+      <div className="pot-gauge">
+        <div className="pot-gauge-fill" style={{ width: `${gaugePct(current)}%` }} />
+        <div className="pot-gauge-marker now" style={{ left: `${gaugePct(current)}%` }}>
+          <span className="pot-gauge-tag num">{current}</span>
+          <span className="pin" />
+        </div>
+        {!reachedCeiling && (
+          <div className="pot-gauge-marker ceiling" style={{ left: `${gaugePct(potential)}%` }}>
+            <span className="pot-gauge-tag num">{potential}</span>
+            <span className="pin" />
+          </div>
+        )}
+      </div>
+      <div className="muted" style={{ fontSize: 12.5, marginTop: 4 }}>
+        {reachedCeiling ? "Maxed out their scouted ceiling." : `${potential - current} short of their scouted ceiling.`}
+      </div>
+    </div>
+  );
+}
+
+export interface NationLegacyRow {
+  label: string;
+  rank: number;
+  total?: number;
+}
+
+/** "You're Brazil's #4 player of all time" style framing — one row backed
+ * by the real, persisted all-time leaderboard, one row an estimate from
+ * the same rank math the world-rank milestones use, scoped to nationality. */
+export function NationLegacy({ flag, countryName, rows }: { flag: string; countryName: string; rows: NationLegacyRow[] }) {
+  return (
+    <div className="card">
+      <div className="row gap8">
+        <span className="legacy-flag">{flag}</span>
+        <h3 style={{ fontSize: 17 }}>{countryName} legacy</h3>
+      </div>
+      <div style={{ marginTop: 4 }}>
+        {rows.map((r, i) => (
+          <div key={i} className="legacy-row row between">
+            <span style={{ fontSize: 14 }}>{r.label}</span>
+            <span className="legacy-rank">
+              #{r.rank}
+              {r.total ? <span className="muted" style={{ fontSize: 12, fontWeight: 600 }}> / {r.total}</span> : null}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 

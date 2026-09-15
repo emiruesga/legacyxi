@@ -4,6 +4,7 @@ import {
   ageGrowth,
   careerScore,
   computeMarketValue,
+  computeNationalRank,
   computeWorldRank,
   milestoneLabel,
   nextMilestoneTier,
@@ -62,6 +63,22 @@ describe("ageGrowth", () => {
     // A real gap should produce meaningfully positive average growth, not
     // just noise — this is what makes a high potential reachable at all.
     expect(avg).toBeGreaterThan(1.5);
+  });
+});
+
+describe("computeNationalRank", () => {
+  it("puts a big footballing nation's compatriot rank behind a small one at the same world rank", () => {
+    const bigNation = computeNationalRank(50, 1); // e.g. Brazil
+    const smallNation = computeNationalRank(50, 5); // e.g. Jamaica
+    expect(bigNation).toBeGreaterThan(smallNation);
+  });
+
+  it("always returns at least #1", () => {
+    expect(computeNationalRank(1, 1)).toBeGreaterThanOrEqual(1);
+  });
+
+  it("gets better (lower) as world rank improves, for a fixed nation", () => {
+    expect(computeNationalRank(10, 2)).toBeLessThan(computeNationalRank(200, 2));
   });
 });
 

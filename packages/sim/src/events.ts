@@ -1,7 +1,25 @@
-import { TIER_LABEL, WORLD_CUP_NAME, pickClubsByTier } from "./data.js";
+import { CONTINENTAL_INTL_CUP, REGION_CONFEDERATION, TIER_LABEL, WORLD_CUP_NAME, pickClubsByTier } from "./data.js";
 import { clamp, ratingToTier } from "./formulas.js";
 import type { RNG } from "./rng.js";
 import type { AutoEventDef, DecisionEventDef, PlayerState } from "./types.js";
+
+/** A deep international run can leave a real mark: a breakout tournament
+ * lifts current rating, and — rarely — convinces scouts to raise a
+ * player's ceiling outright. Winning makes a great tournament more
+ * likely, but doesn't guarantee one, and a good run without the trophy
+ * still counts. */
+function tournamentBoost(p: PlayerState, rng: RNG, won: boolean): { rating: number; potential: number; extraLine: string } {
+  const greatRun = rng.next() < (won ? 0.5 : 0.16);
+  if (!greatRun) return { rating: p.rating, potential: p.potential, extraLine: "" };
+  const rating = clamp(p.rating + rng.int(1, 3), 40, 99);
+  let potential = p.potential;
+  let ceilingLine = "";
+  if (potential < 99 && rng.next() < 0.35) {
+    potential = clamp(potential + rng.int(1, 2), potential, 99);
+    ceilingLine = " Scouts have quietly raised their ceiling on you.";
+  }
+  return { rating, potential, extraLine: ` A standout tournament performance sharpens your game.${ceilingLine}` };
+}
 
 /** Decision events resolve BEFORE that season's stats are simulated.
  * Add a new one here — nothing else in the engine needs to change. */
@@ -147,13 +165,33 @@ export const AUTO_EVENTS: AutoEventDef[] = [
     apply: (p) => ({ ...p, flags: { ...p.flags, slump: true }, note: "A rough patch of form draws some criticism." }),
   },
   {
-    id: "worldcup",
+    id: "worldCup",
     weight: 2,
     isEligible: (p) => p.caps >= 1 && (p.year - p.careerStartYear) % 4 === 2,
     apply: (p, rng) => {
       const won = rng.next() < 0.1;
+      const boost = tournamentBoost(p, rng, won);
       const trophies = won ? [...p.trophies, { name: WORLD_CUP_NAME, year: p.year, tier: p.club.tier, level: "international" as const }] : p.trophies;
-      return { ...p, trophies, note: won ? `Called up for the ${WORLD_CUP_NAME} — and lifted the trophy with the national team!` : `Called up to represent your country at the ${WORLD_CUP_NAME}.` };
+      const line = won
+        ? `Called up for the ${WORLD_CUP_NAME} — and lifted the trophy with the national team!`
+        : `Called up to represent your country at the ${WORLD_CUP_NAME}.`;
+      return { ...p, trophies, rating: boost.rating, potential: boost.potential, note: line + boost.extraLine };
+    },
+  },
+  {
+    id: "continentalIntl",
+    weight: 2,
+    isEligible: (p) => p.caps >= 1 && p.year !== p.careerStartYear && (p.year - p.careerStartYear) % 4 === 0,
+    apply: (p, rng) => {
+      const confederation = REGION_CONFEDERATION[p.nationality.region];
+      const cupName = CONTINENTAL_INTL_CUP[confederation];
+      const won = rng.next() < 0.12;
+      const boost = tournamentBoost(p, rng, won);
+      const trophies = won ? [...p.trophies, { name: cupName, year: p.year, tier: p.club.tier, level: "international" as const }] : p.trophies;
+      const line = won
+        ? `Called up for the ${cupName} — and lifted the trophy with the national team!`
+        : `Called up to represent your country at the ${cupName}.`;
+      return { ...p, trophies, rating: boost.rating, potential: boost.potential, note: line + boost.extraLine };
     },
   },
   {

@@ -31,21 +31,21 @@ import {
   type CreateFormState,
   type LeaderboardView,
 } from "./components.js";
-import { TrophyCelebration } from "./cards.js";
+import { DebutCelebration, TrophyCelebration } from "./cards.js";
 import { fetchLeaderboard, submitCareer } from "./api.js";
 
-interface WonTrophy {
-  name: string;
-  year: number;
-}
+type Moment = { kind: "trophy"; name: string; year: number } | { kind: "debut"; country: string };
 
-function extractTrophies(records: CareerRecord[]): WonTrophy[] {
-  const won: WonTrophy[] = [];
+/** Walk a batch's season records in order and surface every celebratory
+ * moment (international debut, each trophy) in the order it happened. */
+function extractMoments(records: CareerRecord[], countryName: string): Moment[] {
+  const moments: Moment[] = [];
   for (const r of records) {
     if ("decisionOnly" in r) continue;
-    for (const t of r.trophies) won.push({ name: t.name, year: t.year });
+    if (r.capDebut) moments.push({ kind: "debut", country: countryName });
+    for (const t of r.trophies) moments.push({ kind: "trophy", name: t.name, year: t.year });
   }
-  return won;
+  return moments;
 }
 
 type Screen = "intro" | "create" | "academy" | "career" | "retired";
@@ -83,7 +83,7 @@ export default function App() {
   const [finalScore, setFinalScore] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [rng, setRng] = useState<RNG>(() => createRng(randomSeed()));
-  const [celebrations, setCelebrations] = useState<WonTrophy[]>([]);
+  const [celebrations, setCelebrations] = useState<Moment[]>([]);
 
   function goToCreate() {
     setScreen("create");
@@ -107,8 +107,8 @@ export default function App() {
   }
 
   function applyBatchResult(result: BatchResult) {
-    const wonTrophies = extractTrophies(result.records);
-    if (wonTrophies.length) setCelebrations((prev) => [...prev, ...wonTrophies]);
+    const moments = extractMoments(result.records, result.player.nationality.name);
+    if (moments.length) setCelebrations((prev) => [...prev, ...moments]);
     if (result.status === "awaiting") {
       setPending({ evt: result.pendingDecision, seasonsLeft: result.seasonsLeft, priorRecords: result.records });
       setPlayer(result.player);
@@ -147,7 +147,7 @@ export default function App() {
       });
       if (result) {
         const board = result.top.map((row) => ({ ...row, isYou: row.score === score && row.name === player.name }));
-        setLeaderboard({ rank: result.rank, total: result.total, board });
+        setLeaderboard({ rank: result.rank, total: result.total, board, nationalRank: result.nationalRank, nationalTotal: result.nationalTotal });
       } else {
         // Server unreachable — fall back to a read-only view so the run still ends cleanly.
         const fallback = await fetchLeaderboard(5);
@@ -155,6 +155,8 @@ export default function App() {
           rank: null,
           total: fallback?.total ?? 0,
           board: fallback?.top ?? [],
+          nationalRank: null,
+          nationalTotal: 0,
         });
       }
       setSubmitting(false);
@@ -212,13 +214,12 @@ export default function App() {
 
       {screen === "retired" && player && leaderboard && <RetiredScreen player={player} verdict={verdictFor(player, finalScore)} score={finalScore} leaderboard={leaderboard} onRestart={restart} />}
 
-      {celebrations.length > 0 && (
-        <TrophyCelebration
-          trophyName={celebrations[0].name}
-          year={celebrations[0].year}
-          onContinue={() => setCelebrations((prev) => prev.slice(1))}
-        />
-      )}
+      {celebrations.length > 0 &&
+        (celebrations[0].kind === "trophy" ? (
+          <TrophyCelebration trophyName={celebrations[0].name} year={celebrations[0].year} onContinue={() => setCelebrations((prev) => prev.slice(1))} />
+        ) : (
+          <DebutCelebration countryName={celebrations[0].country} onContinue={() => setCelebrations((prev) => prev.slice(1))} />
+        ))}
     </div>
   );
 }
