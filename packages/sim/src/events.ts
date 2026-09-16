@@ -1,5 +1,5 @@
 import { CONTINENTAL_INTL_CUP, REGION_CONFEDERATION, TIER_LABEL, WORLD_CUP_NAME, pickClubsByTier } from "./data.js";
-import { clamp, ratingToTier } from "./formulas.js";
+import { clamp, internationalWinChance, ratingToTier } from "./formulas.js";
 import type { RNG } from "./rng.js";
 import type { AutoEventDef, DecisionEventDef, PlayerState } from "./types.js";
 
@@ -167,9 +167,10 @@ export const AUTO_EVENTS: AutoEventDef[] = [
   {
     id: "worldCup",
     weight: 2,
-    isEligible: (p) => p.caps >= 1 && (p.year - p.careerStartYear) % 4 === 2,
+    // Real World Cup years: 2022, 2026, 2030, 2034, ... — always year % 4 === 2.
+    isEligible: (p) => p.caps >= 1 && p.year % 4 === 2,
     apply: (p, rng) => {
-      const won = rng.next() < 0.1;
+      const won = rng.next() < internationalWinChance(p.nationality.tier, p.rating, 0.11);
       const boost = tournamentBoost(p, rng, won);
       const trophies = won ? [...p.trophies, { name: WORLD_CUP_NAME, year: p.year, tier: p.club.tier, level: "international" as const }] : p.trophies;
       const line = won
@@ -181,11 +182,13 @@ export const AUTO_EVENTS: AutoEventDef[] = [
   {
     id: "continentalIntl",
     weight: 2,
-    isEligible: (p) => p.caps >= 1 && p.year !== p.careerStartYear && (p.year - p.careerStartYear) % 4 === 0,
+    // Continental championships land on the calendar years between World
+    // Cups — real Euros/Copa América/AFCON years cluster on year % 4 === 0.
+    isEligible: (p) => p.caps >= 1 && p.year % 4 === 0,
     apply: (p, rng) => {
       const confederation = REGION_CONFEDERATION[p.nationality.region];
       const cupName = CONTINENTAL_INTL_CUP[confederation];
-      const won = rng.next() < 0.12;
+      const won = rng.next() < internationalWinChance(p.nationality.tier, p.rating, 0.13);
       const boost = tournamentBoost(p, rng, won);
       const trophies = won ? [...p.trophies, { name: cupName, year: p.year, tier: p.club.tier, level: "international" as const }] : p.trophies;
       const line = won

@@ -347,6 +347,85 @@ export function ChampionMoment({
   );
 }
 
+/** A generic gold ball-on-a-plinth trophy — "Ballon d'Or" literally means
+ * "golden ball", so a gold sphere with soccer-ball seams on a small base is
+ * the natural, generic reading of the award's name, not a copy of any
+ * manufacturer's actual trophy sculpture. Spins slowly with a shine sweep. */
+function AnimatedGoldenBall({ size = 96 }: { size?: number }) {
+  return (
+    <svg width={size} height={size * 1.2} viewBox="0 0 100 120">
+      <defs>
+        <radialGradient id="lxi-ball-fill" cx="35%" cy="30%" r="75%">
+          <stop offset="0%" stopColor="#fff6da" />
+          <stop offset="45%" stopColor="#e4c158" />
+          <stop offset="100%" stopColor="#9c7018" />
+        </radialGradient>
+        <clipPath id="lxi-ball-clip">
+          <circle cx="50" cy="42" r="32" />
+        </clipPath>
+      </defs>
+      <g className="ball-spin-slow" style={{ transformOrigin: "50px 42px" }}>
+        <circle cx="50" cy="42" r="32" fill="url(#lxi-ball-fill)" stroke="#7a5c17" strokeWidth="1.5" />
+        <g stroke="#9c7018" strokeWidth="1.4" fill="none" opacity="0.75">
+          <path d="M50 12 L38 22 L34 38 L50 48 L66 38 L62 22 Z" />
+          <path d="M50 12 L50 3" />
+          <path d="M34 38 L18 40" />
+          <path d="M66 38 L82 40" />
+          <path d="M50 48 L44 66" />
+          <path d="M50 48 L56 66" />
+        </g>
+        <g clipPath="url(#lxi-ball-clip)">
+          <rect className="trophy-shine" x="-40" y="0" width="26" height="90" fill="rgba(255,255,255,0.6)" transform="skewX(-18)" />
+        </g>
+      </g>
+      <rect x="44" y="74" width="12" height="14" fill="#2a2a2a" />
+      <rect x="32" y="88" width="36" height="9" rx="2" fill="#1c1c1c" stroke="#3a3a3a" strokeWidth="1" />
+      <rect x="24" y="97" width="52" height="9" rx="2" fill="#1c1c1c" stroke="#3a3a3a" strokeWidth="1" />
+    </svg>
+  );
+}
+
+/** Winning the Ballon d'Or gets the same weight as a national-team title —
+ * it's the individual equivalent of "biggest moment in the game." */
+export function BallonDOrMoment({ year, onContinue }: { year: number; onContinue: () => void }) {
+  const confetti = Array.from({ length: 26 }, (_, i) => ({
+    left: (i * 37) % 100,
+    delay: (i * 97) % 24 / 10,
+    duration: 2.4 + ((i * 61) % 14) / 10,
+    color: STREAMER_COLORS[i % STREAMER_COLORS.length],
+    rotate: (i * 41) % 180,
+    streamer: i % 4 === 1,
+  }));
+  return (
+    <div className="champion-overlay" onClick={onContinue} role="button" tabIndex={0}>
+      <div className="confetti" aria-hidden="true">
+        {confetti.map((c, i) => (
+          <span
+            key={i}
+            className={c.streamer ? "confetti-piece confetti-streamer" : "confetti-piece"}
+            style={{
+              left: `${c.left}%`,
+              background: c.color,
+              animationDelay: `${c.delay}s`,
+              animationDuration: `${c.duration}s`,
+              transform: `rotate(${c.rotate}deg)`,
+            }}
+          />
+        ))}
+      </div>
+      <div className="champion-panel">
+        <div className="champion-trophy-glow trophy-svg-pop">
+          <AnimatedGoldenBall />
+        </div>
+        <div className="champion-eyebrow">Ballon d'Or</div>
+        <h2 className="champion-title">World's Best Player</h2>
+        <p className="champion-subtitle">{year} · the individual honor every player dreams of</p>
+        <div className="champion-hint">tap to continue</div>
+      </div>
+    </div>
+  );
+}
+
 /** The Legacy XI mark — a badge tile, not a club crest (deliberately
  * distinct from the generated club crests elsewhere in the app): a dark
  * beveled square with one cut corner carrying a single accent flash, bold

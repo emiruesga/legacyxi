@@ -112,6 +112,22 @@ export function rollIndividualAwards(p: PlayerState, apps: number, goals: number
   return won;
 }
 
+/** A nation's footballing pedigree — the world's giants have deep enough
+ * squads to genuinely dominate international tournaments, not just show
+ * up. Tier 1 (Brazil, France, Argentina, Germany, Spain, England, ...) get
+ * a real edge; a small nation can still shock the world, just rarely. */
+const NATION_TOURNAMENT_STRENGTH: Record<number, number> = { 1: 1.9, 2: 1.35, 3: 0.9, 4: 0.5, 5: 0.28 };
+
+/** Chance of winning an international tournament this call-up: a base
+ * rate scaled by the nation's footballing weight, plus a real bonus for
+ * carrying a world-class season yourself — a genuine superstar drags a
+ * good team over the line more often than an average one. */
+export function internationalWinChance(nationTier: number, rating: number, base: number): number {
+  const strength = NATION_TOURNAMENT_STRENGTH[nationTier] ?? NATION_TOURNAMENT_STRENGTH[5];
+  const starPower = clamp((rating - 72) / 54, 0, 1) * 0.22; // up to +22% at a 99-rated peak
+  return clamp(base * strength + starPower, 0.03, 0.65);
+}
+
 export function nationalThreshold(tier: number): number {
   return ({ 1: 72, 2: 68, 3: 64, 4: 60, 5: 56 } as Record<number, number>)[tier];
 }

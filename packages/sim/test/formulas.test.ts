@@ -6,6 +6,7 @@ import {
   computeMarketValue,
   computeNationalRank,
   computeWorldRank,
+  internationalWinChance,
   milestoneLabel,
   nextMilestoneTier,
   ratingToTier,
@@ -224,6 +225,34 @@ describe("rollDraft rarity — 99 should read as a GOAT-tier outlier, not an imp
     ceilings.sort((a, b) => a - b);
     const median = ceilings[Math.floor(ceilings.length / 2)];
     expect(median).toBeLessThan(85);
+  });
+});
+
+describe("internationalWinChance", () => {
+  it("gives a world-giant nation a real, meaningfully higher shot than a minnow at the same rating", () => {
+    const giant = internationalWinChance(1, 85, 0.12);
+    const minnow = internationalWinChance(5, 85, 0.12);
+    expect(giant).toBeGreaterThan(minnow * 2);
+  });
+
+  it("gives a genuine world-class season a noticeably better shot than an average one, same nation", () => {
+    const superstar = internationalWinChance(1, 97, 0.12);
+    const squadPlayer = internationalWinChance(1, 75, 0.12);
+    expect(superstar).toBeGreaterThan(squadPlayer);
+  });
+
+  it("makes a world giant's peak-form win chance a real, not token, possibility", () => {
+    // The whole point of the fix: a top nation with a great player should
+    // win noticeably more than 1 time in 5 attempts, not 1 in 10+.
+    expect(internationalWinChance(1, 95, 0.13)).toBeGreaterThan(0.2);
+  });
+
+  it("never exceeds a sane ceiling even for the best possible case", () => {
+    expect(internationalWinChance(1, 99, 0.13)).toBeLessThanOrEqual(0.65);
+  });
+
+  it("never goes below a small floor even for the worst possible case", () => {
+    expect(internationalWinChance(5, 65, 0.11)).toBeGreaterThanOrEqual(0.03);
   });
 });
 

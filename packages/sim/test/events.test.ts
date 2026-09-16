@@ -17,10 +17,24 @@ function capsPlayer(overrides: Partial<PlayerState> = {}): PlayerState {
 }
 
 describe("international tournament events", () => {
-  it("names the World Cup for any nation on the world-cup cadence", () => {
+  it("lands on the real World Cup calendar years, regardless of when the career started", () => {
     const worldCup = AUTO_EVENTS.find((e) => e.id === "worldCup")!;
-    const p = capsPlayer({ year: 2026, careerStartYear: 2024 }); // year - start = 2
-    expect(worldCup.isEligible(p, 0)).toBe(true);
+    for (const year of [2022, 2026, 2030, 2034]) {
+      expect(worldCup.isEligible(capsPlayer({ year, careerStartYear: 2050 }), 0)).toBe(true);
+    }
+    for (const year of [2023, 2024, 2027, 2028]) {
+      expect(worldCup.isEligible(capsPlayer({ year, careerStartYear: 2050 }), 0)).toBe(false);
+    }
+  });
+
+  it("lands the continental championship on the calendar years between World Cups", () => {
+    const continental = AUTO_EVENTS.find((e) => e.id === "continentalIntl")!;
+    for (const year of [2024, 2028, 2032]) {
+      expect(continental.isEligible(capsPlayer({ year, careerStartYear: 2050 }), 0)).toBe(true);
+    }
+    for (const year of [2025, 2026, 2027]) {
+      expect(continental.isEligible(capsPlayer({ year, careerStartYear: 2050 }), 0)).toBe(false);
+    }
   });
 
   it("gives a European nation the European Championship, not another confederation's cup", () => {

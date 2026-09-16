@@ -824,6 +824,17 @@ table.stat-table th.num {
     transform: translateX(220px) skewX(-18deg);
   }
 }
+.ball-spin-slow {
+  animation: ballSpinSlow 5s linear infinite;
+}
+@keyframes ballSpinSlow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .champion-trophy-glow,
   .champion-flag,
@@ -833,6 +844,7 @@ table.stat-table th.num {
   .champion-hint,
   .trophy-svg-pop,
   .trophy-shine,
+  .ball-spin-slow,
   .confetti-piece {
     animation: none !important;
     opacity: 1;

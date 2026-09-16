@@ -32,13 +32,14 @@ import {
   type CreateFormState,
   type LeaderboardView,
 } from "./components.js";
-import { AppBar, AwardCelebration, ChampionMoment, DebutCelebration, TrophyCelebration, WorldCupMoment } from "./cards.js";
+import { AppBar, AwardCelebration, BallonDOrMoment, ChampionMoment, DebutCelebration, TrophyCelebration, WorldCupMoment } from "./cards.js";
 import { fetchLeaderboard, submitCareer } from "./api.js";
 
 type Moment =
   | { kind: "trophy"; name: string; year: number }
   | { kind: "champion"; country: string; flag: string; trophyName: string; year: number }
   | { kind: "award"; name: string; year: number }
+  | { kind: "ballonDor"; year: number }
   | { kind: "debut"; country: string }
   | { kind: "worldCup"; country: string; flag: string; year: number };
 
@@ -47,7 +48,8 @@ type Moment =
  * in the order it happened. The World Cup call-up comes before that
  * season's trophy — you make the squad before you can win it. Winning an
  * actual international trophy (World Cup / a confederation championship)
- * gets the bigger ChampionMoment instead of the regular trophy popup. */
+ * gets the bigger ChampionMoment instead of the regular trophy popup, and
+ * the Ballon d'Or gets its own dedicated moment too. */
 function extractMoments(records: CareerRecord[], countryName: string, countryFlag: string): Moment[] {
   const moments: Moment[] = [];
   for (const r of records) {
@@ -61,7 +63,13 @@ function extractMoments(records: CareerRecord[], countryName: string, countryFla
         moments.push({ kind: "trophy", name: t.name, year: t.year });
       }
     }
-    for (const a of r.awardsWon) moments.push({ kind: "award", name: a.name, year: a.year });
+    for (const a of r.awardsWon) {
+      if (a.name === "Ballon d'Or") {
+        moments.push({ kind: "ballonDor", year: a.year });
+      } else {
+        moments.push({ kind: "award", name: a.name, year: a.year });
+      }
+    }
   }
   return moments;
 }
@@ -236,6 +244,7 @@ export default function App() {
           if (moment.kind === "trophy") return <TrophyCelebration trophyName={moment.name} year={moment.year} onContinue={dismiss} />;
           if (moment.kind === "champion") return <ChampionMoment countryName={moment.country} flag={moment.flag} trophyName={moment.trophyName} year={moment.year} onContinue={dismiss} />;
           if (moment.kind === "award") return <AwardCelebration awardName={moment.name} year={moment.year} onContinue={dismiss} />;
+          if (moment.kind === "ballonDor") return <BallonDOrMoment year={moment.year} onContinue={dismiss} />;
           if (moment.kind === "worldCup") return <WorldCupMoment countryName={moment.country} flag={moment.flag} year={moment.year} onContinue={dismiss} />;
           return <DebutCelebration countryName={moment.country} onContinue={dismiss} />;
         })()}
