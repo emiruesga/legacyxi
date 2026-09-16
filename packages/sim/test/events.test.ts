@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createRng } from "../src/rng.js";
 import { AUTO_EVENTS } from "../src/events.js";
-import { CLUBS, COUNTRIES } from "../src/data.js";
+import { CLUBS, COUNTRIES, WORLD_CUP_NAME, isInternationalTrophy } from "../src/data.js";
 import { newPlayer } from "../src/engine.js";
 import { rollDraft } from "../src/formulas.js";
 import type { PlayerState } from "../src/types.js";
@@ -76,5 +76,23 @@ describe("international tournament events", () => {
     }
     expect(sawRatingBump).toBe(true);
     expect(sawPotentialBump).toBe(true);
+  });
+
+  it("flags every trophy name these events can actually produce as an international trophy", () => {
+    expect(isInternationalTrophy(WORLD_CUP_NAME)).toBe(true);
+    const continental = AUTO_EVENTS.find((e) => e.id === "continentalIntl")!;
+    for (const country of COUNTRIES) {
+      const p = capsPlayer({ nationality: country, year: 2028, careerStartYear: 2024 });
+      for (let seed = 1; seed <= 100; seed++) {
+        const result = continental.apply(p, createRng(seed));
+        const won = result.trophies[result.trophies.length - 1];
+        if (won && result.trophies.length > p.trophies.length) {
+          expect(isInternationalTrophy(won.name)).toBe(true);
+          break;
+        }
+      }
+    }
+    // A club trophy must never be mistaken for an international one.
+    expect(isInternationalTrophy("Premier League title")).toBe(false);
   });
 });

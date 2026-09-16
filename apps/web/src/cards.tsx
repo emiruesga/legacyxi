@@ -245,8 +245,108 @@ export function WorldCupMoment({ countryName, flag, year, onContinue }: { countr
   );
 }
 
-/** The Legacy XI mark — a flat, single-accent monogram badge. No gradient,
- * no glow: a logo, not a hero graphic. */
+/** A generic gold trophy cup — deliberately a stylized silhouette (bowl,
+ * two handles, stem, plinth) rather than any real competition's actual
+ * trophy design, which is a protected 3D sculpture. Shines with an
+ * animated diagonal sweep clipped to the cup. */
+function AnimatedTrophy({ size = 96 }: { size?: number }) {
+  const cupPath = "M25 8 H75 A6 6 0 0 1 75 20 C75 46 64 62 50 66 C36 62 25 46 25 20 A6 6 0 0 1 25 8 Z";
+  return (
+    <svg width={size} height={size * 1.25} viewBox="0 0 100 125" className="trophy-svg-pop">
+      <defs>
+        <linearGradient id="lxi-trophy-fill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#fff6da" />
+          <stop offset="45%" stopColor="#e4c158" />
+          <stop offset="100%" stopColor="#a9781f" />
+        </linearGradient>
+        <clipPath id="lxi-trophy-clip">
+          <path d={cupPath} />
+        </clipPath>
+      </defs>
+      <path
+        d="M18 14 C6 14 6 34 15 40 C19 43 23 43 25 41"
+        fill="none"
+        stroke="#c9973a"
+        strokeWidth="6"
+        strokeLinecap="round"
+      />
+      <path
+        d="M82 14 C94 14 94 34 85 40 C81 43 77 43 75 41"
+        fill="none"
+        stroke="#c9973a"
+        strokeWidth="6"
+        strokeLinecap="round"
+      />
+      <path d={cupPath} fill="url(#lxi-trophy-fill)" stroke="#7a5c17" strokeWidth="1.5" />
+      <g clipPath="url(#lxi-trophy-clip)">
+        <rect className="trophy-shine" x="-40" y="0" width="30" height="70" fill="rgba(255,255,255,0.55)" transform="skewX(-18)" />
+      </g>
+      <rect x="45" y="66" width="10" height="16" fill="#c9973a" />
+      <rect x="34" y="82" width="32" height="10" rx="2" fill="url(#lxi-trophy-fill)" stroke="#7a5c17" strokeWidth="1.5" />
+      <rect x="26" y="92" width="48" height="10" rx="2" fill="url(#lxi-trophy-fill)" stroke="#7a5c17" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+const STREAMER_COLORS = ["#e4c158", "#5cff9e", "#f6dd8c", "#c9cdd3"];
+
+/** The single biggest moment in the game: winning a tournament with your
+ * national team. An animated trophy, a heavier confetti/streamer mix, and
+ * the flag, staged distinctly bigger than a club trophy win. */
+export function ChampionMoment({
+  countryName,
+  flag,
+  trophyName,
+  year,
+  onContinue,
+}: {
+  countryName: string;
+  flag: string;
+  trophyName: string;
+  year: number;
+  onContinue: () => void;
+}) {
+  const confetti = Array.from({ length: 32 }, (_, i) => ({
+    left: (i * 31) % 100,
+    delay: (i * 113) % 26 / 10,
+    duration: 2.4 + ((i * 59) % 16) / 10,
+    color: STREAMER_COLORS[i % STREAMER_COLORS.length],
+    rotate: (i * 53) % 180,
+    streamer: i % 4 === 0,
+  }));
+  return (
+    <div className="champion-overlay" onClick={onContinue} role="button" tabIndex={0}>
+      <div className="confetti" aria-hidden="true">
+        {confetti.map((c, i) => (
+          <span
+            key={i}
+            className={c.streamer ? "confetti-piece confetti-streamer" : "confetti-piece"}
+            style={{
+              left: `${c.left}%`,
+              background: c.color,
+              animationDelay: `${c.delay}s`,
+              animationDuration: `${c.duration}s`,
+              transform: `rotate(${c.rotate}deg)`,
+            }}
+          />
+        ))}
+      </div>
+      <div className="champion-panel">
+        <div className="champion-trophy-glow">
+          <AnimatedTrophy />
+        </div>
+        <div className="champion-flag">{flag}</div>
+        <div className="champion-eyebrow">Champions</div>
+        <h2 className="champion-title">
+          {countryName} win the {trophyName}!
+        </h2>
+        <p className="champion-subtitle">{year} · a place in the history books</p>
+        <div className="champion-hint">tap to continue</div>
+      </div>
+    </div>
+  );
+}
+
 /** The Legacy XI mark — a badge tile, not a club crest (deliberately
  * distinct from the generated club crests elsewhere in the app): a dark
  * beveled square with one cut corner carrying a single accent flash, bold

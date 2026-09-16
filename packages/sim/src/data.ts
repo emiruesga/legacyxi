@@ -100,6 +100,15 @@ export const CONTINENTAL_INTL_CUP: Record<Confederation, string> = {
   CONCACAF: "Gold Cup",
 };
 
+/** Every trophy name a national team (as opposed to a club) can lift —
+ * the World Cup plus each confederation's championship. Used to give a
+ * win with your country a distinct, bigger celebration than a club trophy. */
+export const INTERNATIONAL_TROPHY_NAMES: ReadonlySet<string> = new Set([WORLD_CUP_NAME, ...Object.values(CONTINENTAL_INTL_CUP)]);
+
+export function isInternationalTrophy(name: string): boolean {
+  return INTERNATIONAL_TROPHY_NAMES.has(name);
+}
+
 function league(id: string, name: string, country: string, tier: 1 | 2 | 3 | 4 | 5, confederation: Confederation, cupName: string): League {
   return { id, name, country, tier, confederation, cupName, continentalName: CONTINENTAL_NAME[confederation] };
 }
