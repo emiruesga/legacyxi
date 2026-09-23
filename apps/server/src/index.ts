@@ -4,7 +4,12 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 const app = express();
-app.use(cors());
+
+// "*" (the default) allows any origin — fine for a public, mostly-read
+// leaderboard. Set CORS_ORIGIN to a comma-separated allowlist once you have
+// a real frontend origin to lock this down to.
+const corsOrigin = process.env.CORS_ORIGIN?.trim() || "*";
+app.use(cors({ origin: corsOrigin === "*" ? "*" : corsOrigin.split(",").map((o) => o.trim()) }));
 app.use(express.json());
 
 const TOP_N = 50;

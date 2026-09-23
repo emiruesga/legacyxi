@@ -8,7 +8,8 @@
     "start": "tsx src/index.ts",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
-    "seed": "tsx src/seed.ts"
+    "seed": "tsx src/seed.ts",
+    "render-build": "npm install && npx prisma generate && npx prisma db push --accept-data-loss && npx tsx src/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.20.0",

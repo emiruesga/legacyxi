@@ -1,8 +1,8 @@
-// Dev datasource is SQLite for a zero-config local run; swap "provider" to
-// "postgresql" and DATABASE_URL to a Postgres connection string for
-// production — no other change needed, Prisma abstracts the rest.
+// Postgres everywhere — local dev and production both just point
+// DATABASE_URL at a Postgres instance (a free Neon/Railway/Render database,
+// or a local Postgres). No other change needed to move between them.
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
