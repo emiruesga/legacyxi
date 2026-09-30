@@ -30,6 +30,7 @@ export const COUNTRIES: Country[] = [
   { name: "Ghana", flag: "🇬🇭", tier: 3, region: "africa", leagueId: "GHA1" },
   { name: "Sweden", flag: "🇸🇪", tier: 3, region: "europe", leagueId: "SWE1" },
   { name: "Serbia", flag: "🇷🇸", tier: 3, region: "europe", leagueId: "SRB1" },
+  { name: "Turkey", flag: "🇹🇷", tier: 2, region: "europe", leagueId: "TUR1" },
   { name: "Canada", flag: "🇨🇦", tier: 4, region: "northam", leagueId: "CAN1" },
   { name: "Iceland", flag: "🇮🇸", tier: 4, region: "europe", leagueId: "ISL1" },
   { name: "Qatar", flag: "🇶🇦", tier: 4, region: "asia", leagueId: "QAT1" },
@@ -146,6 +147,7 @@ export const LEAGUES: League[] = [
   league("ISL1", "Besta deild karla", "Iceland", 5, "UEFA", "Icelandic Cup"),
   league("QAT1", "Qatar Stars League", "Qatar", 4, "AFC", "Emir Cup"),
   league("JAM1", "Jamaica Premier League", "Jamaica", 5, "CONCACAF", "Jamaica FA Cup"),
+  league("TUR1", "Süper Lig", "Turkey", 2, "UEFA", "Turkish Cup"),
 ];
 
 const LEAGUE_BY_ID: Record<string, League> = Object.fromEntries(LEAGUES.map((l) => [l.id, l]));
@@ -267,6 +269,9 @@ export const CLUBS: Club[] = [
   ]),
   ...clubs("JAM1", [
     ["Waterhouse FC", 5, 40], ["Cavalier FC", 5, 40],
+  ]),
+  ...clubs("TUR1", [
+    ["Galatasaray", 1, 82], ["Fenerbahçe", 1, 80], ["Beşiktaş", 2, 74], ["Trabzonspor", 3, 64],
   ]),
 ];
 
